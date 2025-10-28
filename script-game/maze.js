@@ -150,4 +150,12 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
 
     drawGrid();
     animateKruskal();
+
+        // supaya data maze bisa dibaca Pac-Man
+    return {
+        grid: grid, // Array Cell yang berisi properti walls
+        cols: cols, // Jumlah kolom
+        rows: rows, // Jumlah baris
+        w: w        // Ukuran Cell (TILE_SIZE)
+    };
 }
