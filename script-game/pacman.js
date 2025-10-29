@@ -14,31 +14,23 @@ var pacman = {
 var ctx;
 var canvasElement;
 var maze;
+var imageDataA;
 
-function initializePacman(context, canvasObj, mazeData) {
-    ctx = context;
-    canvasElement = canvasObj;
+function initializePacman(mazeData) { 
     maze = mazeData;
     
-    // menyesuaikan ukuran dan posisi Pac-Man dengan Cell Labirin
     if (maze) {
         const TILE_SIZE = maze.w;
-
-        // posisi awal [0, 0]
         pacman.x = TILE_SIZE / 2;
         pacman.y = TILE_SIZE / 2;
-        
-        // mengatur radius agar tidak menempel tembok
         const PADDING = 4;
         pacman.radius = TILE_SIZE / 2 - PADDING;
-        
-        // mengatur kecepatan: proposional dengan ukuran cell
         pacman.speed = TILE_SIZE / 10;
     }
     
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
-};
+}
 
 function getGridIndex(i, j) {
     if (!maze || i < 0 || j < 0 || i >= maze.cols || j >= maze.rows) return -1;
@@ -97,26 +89,6 @@ function updatePosition() {
     }
 
     updateMouth();
-}
-
-// gambar Pac-Man
-function drawPacman() {
-    let startAngle = pacman.mouthOpen;
-    let endAngle = 2 * Math.PI - pacman.mouthOpen;
-    let rotation = pacman.direction * Math.PI / 2;
-
-    ctx.save();
-    ctx.translate(pacman.x, pacman.y);
-    ctx.rotate(rotation);
-
-    ctx.beginPath();
-    ctx.arc(0, 0, pacman.radius, startAngle, endAngle);
-    ctx.lineTo(0, 0); 
-    ctx.fillStyle = 'yellow';
-    ctx.fill();
-    ctx.closePath();
-    
-    ctx.restore();
 }
 
 // mulut bergerak kalau Pac-Man jalan
