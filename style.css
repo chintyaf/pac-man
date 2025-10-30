@@ -8,4 +8,7 @@
 
 #canvas {
     border: 1px black solid;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }

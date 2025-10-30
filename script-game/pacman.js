@@ -1,125 +1,216 @@
-var pacman = {
-    x: 50, // posisi X awal
-    y: 50, // posisi Y awal
-    radius: 20,
-    speed: 3,
-    direction: 0, // 0: Kanan, 1: Bawah, 2: Kiri, 3: Atas (untuk rotasi)
-    mouthOpen: 0.2,
-    mouthSpeed: 0.08,
-    moving: false,
-    dx: 0, // perubahan X per frame
-    dy: 0 // perubahan Y per frame
-};
+// Instansi global untuk Pac-Man
+var pacman;
 
-var ctx;
-var canvasElement;
-var maze;
-var imageDataA;
+// == KELAS PAC-MAN ==
+class Pacman {
+    constructor(i, j, radius) {
+        this.i = i; // Posisi grid (indeks)
+        this.j = j; // Posisi grid (indeks)
+        this.w = w; // <-- Ini akan membaca 'w' global dari maze.js
+        this.radius = radius;
 
-function initializePacman(mazeData) { 
-    maze = mazeData;
-    
-    if (maze) {
-        const TILE_SIZE = maze.w;
-        pacman.x = TILE_SIZE / 2;
-        pacman.y = TILE_SIZE / 2;
-        const PADDING = 4;
-        pacman.radius = TILE_SIZE / 2 - PADDING;
-        pacman.speed = TILE_SIZE / 10;
-    }
-    
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
-}
+        // Posisi pixel (tengah sel)
+        this.x = this.i * this.w + this.w / 2;
+        this.y = this.j * this.w + this.w / 2;
 
-function getGridIndex(i, j) {
-    if (!maze || i < 0 || j < 0 || i >= maze.cols || j >= maze.rows) return -1;
-    return i + j * maze.cols;
-}
+        this.speed = 2; // Kecepatan gerak (pixel per frame)
 
-function checkGridCollision(x, y) {
-    if (!maze) return false;
+        this.direction = { x: 0, y: 0 };
+        this.nextDirection = { x: 0, y: 0 }; // Buffer input
+        this.lastValidDirection = { x: 1, y: 0 }; // Untuk mulut saat diam
 
-    const TILE_SIZE = maze.w;
-    const radius = pacman.radius;
-
-    const currentI = Math.floor(pacman.x / TILE_SIZE);
-    const currentJ = Math.floor(pacman.y / TILE_SIZE);
-    const currentCell = maze.grid[getGridIndex(currentI, currentJ)];
-    
-    // jika cell tidak ditemukan
-    if (!currentCell) return true;
-
-    // kanan
-    if (pacman.dx > 0 && currentCell.walls[1]) {
-        if (x + radius > (currentI + 1) * TILE_SIZE) return true;
-    }
-    
-    // kiri
-    if (pacman.dx < 0 && currentCell.walls[3]) {
-        if (x - radius < currentI * TILE_SIZE) return true;
+        // Animasi mulut
+        this.mouthAngle = 0.1; // Sudut mulut (dalam radian)
+        this.mouthOpening = true;
+        this.mouthRate = 0.07;
+        this.mouthMax = 0.7; // 40 derajat
+        this.mouthMin = 0.1; // 5 derajat
     }
 
-    // bawah
-    if (pacman.dy > 0 && currentCell.walls[2]) {
-        if (y + radius > (currentJ + 1) * TILE_SIZE) return true;
-    }
+    /**
+     * Menggambar Pac-Man ke imageDataA menggunakan gbr_titik (via dda_line).
+     */
+    draw(imageDataA) {
+        const r = 255,
+            g = 255,
+            b = 0; // Warna kuning
 
-    // atas     
-    if (pacman.dy < 0 && currentCell.walls[0]) {
-        if (y - radius < currentJ * TILE_SIZE) return true;
-    }
-    return false;
-}
+        // Tentukan arah hadap mulut
+        let facingAngle = Math.atan2(this.lastValidDirection.y, this.lastValidDirection.x);
 
-function updatePosition() {
-    let nextX = pacman.x + pacman.dx;
-    let nextY = pacman.y + pacman.dy;
+        // Hitung sudut awal dan akhir untuk "irisan" mulut
+        let startAngle = facingAngle + this.mouthAngle;
+        let endAngle = facingAngle - this.mouthAngle + Math.PI * 2; // +2PI untuk loop
 
-    pacman.moving = (pacman.dx !== 0 || pacman.dy !== 0);
-
-    // cek tabrakan gak
-    if (checkGridCollision(nextX, nextY)) {
-        pacman.dx = 0;
-        pacman.dy = 0;
-    } else {
-        // kalau aman, pindah posisi
-        pacman.x = nextX;
-        pacman.y = nextY;
-    }
-
-    updateMouth();
-}
-
-// mulut bergerak kalau Pac-Man jalan
-function updateMouth() {
-    if (pacman.moving) {
-        if (pacman.mouthOpen > 0.4 || pacman.mouthOpen < 0.05) {
-            pacman.mouthSpeed = -pacman.mouthSpeed;
+        // Gambar lingkaran "penuh" dikurangi irisan mulut
+        for (let theta = startAngle; theta < endAngle; theta += 0.04) {
+            // Asumsi dda_line() sudah global
+            dda_line(
+                imageDataA,
+                Math.round(this.x),
+                Math.round(this.y),
+                Math.round(this.x + this.radius * Math.cos(theta)),
+                Math.round(this.y + this.radius * Math.sin(theta)),
+                r,
+                g,
+                b
+            );
         }
-        pacman.mouthOpen += pacman.mouthSpeed;
-    } else {
-        pacman.mouthOpen = 0.2;
-        pacman.mouthSpeed = Math.abs(pacman.mouthSpeed);
+    }
+
+    /**
+     * Memperbarui posisi dan status Pac-Man.
+     */
+    update() {
+        // 1. Animasi mulut (hanya jika bergerak)
+        if (this.direction.x !== 0 || this.direction.y !== 0) {
+            this.lastValidDirection = this.direction; // Simpan arah terakhir
+            if (this.mouthOpening) {
+                this.mouthAngle += this.mouthRate;
+                if (this.mouthAngle > this.mouthMax) this.mouthOpening = false;
+            } else {
+                this.mouthAngle -= this.mouthRate;
+                if (this.mouthAngle < this.mouthMin) this.mouthOpening = true;
+            }
+        }
+
+        // 2. Logika Gerakan dan Tabrakan
+        const isCenteredX = Math.abs(this.x - (this.i * this.w + this.w / 2)) < this.speed;
+        const isCenteredY = Math.abs(this.y - (this.j * this.w + this.w / 2)) < this.speed;
+
+        if (isCenteredX && isCenteredY) {
+            this.x = this.i * this.w + this.w / 2;
+            this.y = this.j * this.w + this.w / 2;
+
+            // Ambil sel saat ini dari grid global
+            // Ini akan membaca 'grid' dan 'index' global dari maze.js
+            let currentCell = grid[index(this.i, this.j)];            
+            if (!currentCell) return; // Keluar jika di luar batas
+
+            // Coba terapkan input (nextDirection)
+            let canTurn = false;
+            if (this.nextDirection.x === 1 && !currentCell.walls[1]) canTurn = true;
+            else if (this.nextDirection.x === -1 && !currentCell.walls[3]) canTurn = true;
+            else if (this.nextDirection.y === -1 && !currentCell.walls[0]) canTurn = true;
+            else if (this.nextDirection.y === 1 && !currentCell.walls[2]) canTurn = true;
+
+            if (this.nextDirection.x !== 0 || this.nextDirection.y !== 0) {
+                if (canTurn) {
+                    this.direction = { ...this.nextDirection };
+                    this.nextDirection = { x: 0, y: 0 }; // Kosongkan buffer
+                }
+            }
+
+            // Cek apakah arah saat ini menabrak tembok
+            if (this.direction.x === 1 && currentCell.walls[1]) this.direction = { x: 0, y: 0 };
+            else if (this.direction.x === -1 && currentCell.walls[3]) this.direction = { x: 0, y: 0 };
+            else if (this.direction.y === -1 && currentCell.walls[0]) this.direction = { x: 0, y: 0 };
+            else if (this.direction.y === 1 && currentCell.walls[2]) this.direction = { x: 0, y: 0 };
+        }
+
+        // 3. Gerakkan Pac-Man
+        this.x += this.direction.x * this.speed;
+        this.y += this.direction.y * this.speed;
+
+        // 4. Perbarui posisi grid (i, j)
+        this.i = Math.floor(this.x / this.w);
+        this.j = Math.floor(this.y / this.w);
+    }
+
+    /**
+     * Menyimpan input dari keyboard.
+     */
+    setDirection(e) {
+        if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+            return;
+        }
+        e.preventDefault(); 
+
+        switch (e.key) {
+            case "ArrowUp":
+                if (this.direction.y !== 1) this.nextDirection = { x: 0, y: -1 };
+                break;
+            case "ArrowDown":
+                if (this.direction.y !== -1) this.nextDirection = { x: 0, y: 1 };
+                break;
+            case "ArrowLeft":
+                if (this.direction.x !== 1) this.nextDirection = { x: -1, y: 0 };
+                break;
+            case "ArrowRight":
+                if (this.direction.x !== -1) this.nextDirection = { x: 1, y: 0 };
+                break;
+        }
+    }
+
+    stopDirection(e) {
+        if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+            return;
+        }
+        e.preventDefault();
+
+        // Logika ini menghentikan gerakan HANYA JIKA
+        // tombol yang dilepas sesuai dengan arah gerak saat ini.
+        switch (e.key) {
+            case "ArrowUp":
+                // Jika ini adalah arah TERTUNDA, batalkan
+                if (this.nextDirection.y === -1) this.nextDirection = { x: 0, y: 0 };
+                // Jika ini adalah arah SEKARANG, berhenti
+                if (this.direction.y === -1) this.direction = { x: 0, y: 0 };
+                break;
+            case "ArrowDown":
+                if (this.nextDirection.y === 1) this.nextDirection = { x: 0, y: 0 };
+                if (this.direction.y === 1) this.direction = { x: 0, y: 0 };
+                break;
+            case "ArrowLeft":
+                if (this.nextDirection.x === -1) this.nextDirection = { x: 0, y: 0 };
+                if (this.direction.x === -1) this.direction = { x: 0, y: 0 };
+                break;
+            case "ArrowRight":
+                if (this.nextDirection.x === 1) this.nextDirection = { x: 0, y: 0 };
+                if (this.direction.x === 1) this.direction = { x: 0, y: 0 };
+                break;
+        }
     }
 }
 
-function handleKeyDown(event) {
-    if ([37, 38, 39, 40].includes(event.keyCode)) {
-        event.preventDefault();
-    }
+// == PENGATURAN GAME LOOP ==
 
-    switch (event.keyCode) {
-        case 37: pacman.dx = -pacman.speed; pacman.dy = 0; pacman.direction = 2; break;
-        case 38: pacman.dx = 0; pacman.dy = -pacman.speed; pacman.direction = 3; break;
-        case 39: pacman.dx = pacman.speed; pacman.dy = 0; pacman.direction = 0; break;
-        case 40: pacman.dx = 0; pacman.dy = pacman.speed; pacman.direction = 1; break;
-    }
+/**
+ * Dipanggil oleh maze.js setelah labirin selesai.
+ */
+function startGameLoop() {
+    // Buat instansi Pac-Man
+    // Ini akan membaca 'w' global
+    pacman = new Pacman(0, 0, w / 2 - 4); 
+    
+    window.addEventListener("keydown", (e) => pacman.setDirection(e));
+    gameLoop();
 }
 
-function handleKeyUp(event) {
-    if ([37, 38, 39, 40].includes(event.keyCode)) {
-        pacman.dx = 0;
-        pacman.dy = 0;
-    }
+/**
+ * Game loop utama yang berjalan setiap frame.
+ */
+function gameLoop() {
+    // 1. PERBARUI LOGIKA
+    pacman.update();
+
+    // 2. GAMBAR ULANG
+    // Aturan 3: Hapus jejak pakai clearRect
+    ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+    // Aturan 1: Ambil buffer KOSONG BARU
+    imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
+
+    // Panggil drawGrid() global dari maze.js
+    drawGrid();
+
+    // Gambar Pac-Man di atas labirin
+    pacman.draw(imageDataA);
+
+    // 3. RENDER KE LAYAR
+    // Aturan 1: Tampilkan hasil akhir
+    ctx.putImageData(imageDataA, 0, 0);
+
+    // Minta frame berikutnya
+    requestAnimationFrame(gameLoop);
 }
