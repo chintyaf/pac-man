@@ -1,257 +1,252 @@
-// UI/Skor & Rendering untuk Pac-Man Game
-// Felicia Jean Andrea Preta Moton
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
 
-// Global variables untuk game state
-var gameState = {
-    score: 0,
-    lives: 3,
-    isGameOver: false,
-    isGameStarted: false,
-    dots: [], // Array untuk menyimpan posisi dot
-    dotsCollected: 0
+var sedangDiStartScreen = true;
+var sedangGameOver = false;
+var sedangMenang = false;
+
+var score = 0;
+var dotMap = [];
+var totalDots = 0;
+
+const cellSize = 24;
+const dotRadius = 3;
+
+// Pac-Man state
+var pacmanRow = 1;
+var pacmanCol = 1;
+var pacmanX = pacmanCol * cellSize + cellSize / 2;
+var pacmanY = pacmanRow * cellSize + cellSize / 2;
+var pacmanSpeed = 2;
+var pacmanDir = { x: 0, y: 0 };
+
+const pixelFont = {
+    "A": ["01110","10001","10001","11111","10001","10001"],
+    "C": ["01110","10001","10000","10000","10001","01110"],
+    "E": ["11111","10000","11110","10000","10000","11111"],
+    "G": ["01110","10000","10000","10011","10001","01110"],
+    "M": ["10001","11011","10101","10001","10001","10001"],
+    "O": ["01110","10001","10001","10001","10001","01110"],
+    "P": ["11110","10001","11110","10000","10000","10000"],
+    "R": ["11110","10001","11110","10100","10010","10001"],
+    "S": ["01111","10000","01110","00001","00001","11110"],
+    "T": ["11111","00100","00100","00100","00100","00100"],
+    "U": ["10001","10001","10001","10001","10001","01110"],
+    "V": ["10001","10001","01010","01010","00100","00100"],
+    "W": ["10001","10001","10101","10101","11011","10001"],
+    "Y": ["10001","01010","00100","00100","00100","00100"],
+    ":": ["00","11","00","00","11","00"],
+    " ": ["00000","00000","00000","00000","00000","00000"]
 };
 
-function initializeDots(grid, cellWidth) {
-    gameState.dots = [];
-    var cols = Math.floor(cnv.width / cellWidth);
-    var rows = Math.floor(cnv.height / cellWidth);
-    
-    for (let j = 0; j < rows; j++) {
-        for (let i = 0; i < cols; i++) {
-            var cell = grid[i + j * cols];
-            if (cell) {
-                // Tempatkan dot di tengah setiap sel
-                gameState.dots.push({
-                    x: i * cellWidth + cellWidth / 2,
-                    y: j * cellWidth + cellWidth / 2,
-                    collected: false,
-                    cell: { i, j }
-                });
+function getCharPattern(ch) { return pixelFont[ch] || pixelFont[" "]; }
+
+function gambar_titik(img, x, y, r, g, b) {
+    if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
+    let i = 4 * (Math.floor(x) + Math.floor(y) * img.width);
+    img.data[i] = r;
+    img.data[i + 1] = g;
+    img.data[i + 2] = b;
+    img.data[i + 3] = 255;
+}
+
+function gambarHuruf(img, ch, x, y, scale, color) {
+    let pat = getCharPattern(ch);
+    for (let row = 0; row < pat.length; row++) {
+        for (let col = 0; col < pat[row].length; col++) {
+            if (pat[row][col] === "1") {
+                for (let sy = 0; sy < scale; sy++) {
+                    for (let sx = 0; sx < scale; sx++) {
+                        gambar_titik(img,
+                            x + col * scale + sx,
+                            y + row * scale + sy,
+                            color.r, color.g, color.b
+                        );
+                    }
+                }
             }
         }
     }
 }
 
-// Render dot di canvas
-function renderDots() {
-    gameState.dots.forEach(dot => {
-        if (!dot.collected) {
-            // Gambar dot sebagai lingkaran kecil
-            lingkaran_polar(imageDataA, dot.x, dot.y, 3, 255, 255, 0);
-        }
-    });
+function gambarTeks(img, text, x, y, scale, color) {
+    let offset = 0;
+    for (let ch of text) {
+        gambarHuruf(img, ch, x + offset, y, scale, color);
+        offset += 6 * scale;
+    }
 }
 
-// Cek Pac-Man melewati dot
-function checkDotCollision(pacmanX, pacmanY, pacmanRadius) {
-    gameState.dots.forEach(dot => {
-        if (!dot.collected) {
-            var dx = pacmanX - dot.x;
-            var dy = pacmanY - dot.y;
-            var distance = Math.sqrt(dx * dx + dy * dy);
-            
-            // Jika Pac-Man cukup dekat dengan dot
-            if (distance < pacmanRadius + 5) {
-                dot.collected = true;
-                gameState.score += 10;
-                gameState.dotsCollected++;
-                
-                // Update tampilan score
-                updateScoreDisplay();
+function tampilkanStartScreen() {
+    sedangDiStartScreen = true;
+    sedangGameOver = false;
+    sedangMenang = false;
+
+    context.clearRect(0,0,canvas.width,canvas.height);
+    let img = context.getImageData(0,0,canvas.width,canvas.height);
+
+    gambarTeks(img, "PACMAN", 110, 120, 4, {r:255,g:120,b:180});
+    gambarTeks(img, "PRESS SPACE", 90, 260, 2, {r:255,g:180,b:210});
+    gambarTeks(img, "TO START", 120, 300, 2, {r:255,g:180,b:210});
+    context.putImageData(img,0,0);
+}
+
+function tampilkanGameOver(score) {
+    sedangGameOver = true;
+    context.clearRect(0,0,canvas.width,canvas.height);
+    let img = context.getImageData(0,0,canvas.width,canvas.height);
+
+    gambarTeks(img, "GAME OVER", 90, 150, 4, {r:255,g:100,b:100});
+    gambarTeks(img, "SCORE:"+score, 120, 240, 2, {r:255,g:180,b:180});
+    context.putImageData(img,0,0);
+}
+
+function tampilkanYouWin(score) {
+    sedangMenang = true;
+    context.clearRect(0,0,canvas.width,canvas.height);
+    let img = context.getImageData(0,0,canvas.width,canvas.height);
+
+    gambarTeks(img, "YOU WIN", 110, 150, 4, {r:255,g:150,b:200});
+    gambarTeks(img, "SCORE:"+score, 120, 240, 2, {r:255,g:200,b:220});
+    context.putImageData(img,0,0);
+}
+
+const mazeGrid = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+];
+
+function drawMaze(img) {
+    for (let r=0; r<mazeGrid.length; r++) {
+        for (let c=0; c<mazeGrid[r].length; c++) {
+            let color = mazeGrid[r][c] === 0 ? {r:30,g:70,b:150} : {r:0,g:0,b:0};
+            for (let y=0; y<cellSize; y++) {
+                for (let x=0; x<cellSize; x++) {
+                    gambar_titik(img,
+                        c*cellSize+x,
+                        r*cellSize+y,
+                        color.r,color.g,color.b
+                    );
+                }
             }
         }
-    });
-}
-
-// Tampilkan UI Start Game
-function renderStartScreen() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, cnv.width, cnv.height);
-    
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('PAC-MAN', cnv.width / 2, cnv.height / 2 - 60);
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '24px Arial';
-    ctx.fillText('Press SPACE to Start', cnv.width / 2, cnv.height / 2);
-    
-    ctx.font = '16px Arial';
-    ctx.fillText('Use Arrow Keys to Move', cnv.width / 2, cnv.height / 2 + 40);
-    ctx.fillText('Collect all dots to win!', cnv.width / 2, cnv.height / 2 + 70);
-}
-
-// Tampilkan UI Game Over
-function renderGameOver() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, cnv.width, cnv.height);
-    
-    ctx.fillStyle = '#FF0000';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', cnv.width / 2, cnv.height / 2 - 60);
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Final Score: ${gameState.score}`, cnv.width / 2, cnv.height / 2);
-    
-    ctx.font = '20px Arial';
-    ctx.fillText('Press R to Restart', cnv.width / 2, cnv.height / 2 + 50);
-}
-
-// Update tampilan score di layar (pojok atas canvas)
-function updateScoreDisplay() {
-    // Background untuk score board
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(10, 10, 200, 80);
-    
-    // Score text
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 20px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${gameState.score}`, 20, 35);
-    
-    // Lives (nyawa)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Lives: ', 20, 60);
-    for (let i = 0; i < gameState.lives; i++) {
-        ctx.fillStyle = '#FFFF00';
-        ctx.beginPath();
-        ctx.arc(85 + i * 25, 55, 8, 0.2 * Math.PI, 1.8 * Math.PI);
-        ctx.lineTo(85 + i * 25, 55);
-        ctx.fill();
-    }
-    
-    // Dots collected
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '14px Arial';
-    ctx.fillText(`Dots: ${gameState.dotsCollected}/${gameState.dots.length}`, 20, 80);
-}
-
-// Render tombol Start/Reset
-function renderButtons() {
-    var buttonY = cnv.height - 50;
-    
-    // Button Start
-    ctx.fillStyle = '#4CAF50';
-    ctx.fillRect(cnv.width / 2 - 120, buttonY, 100, 35);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Start', cnv.width / 2 - 70, buttonY + 23);
-    
-    // Button Reset
-    ctx.fillStyle = '#F44336';
-    ctx.fillRect(cnv.width / 2 + 20, buttonY, 100, 35);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('Reset', cnv.width / 2 + 70, buttonY + 23);
-}
-
-// Handle click pada tombol
-function handleButtonClick(x, y) {
-    var buttonY = cnv.height - 50;
-    
-    // Start button
-    if (x >= cnv.width / 2 - 120 && x <= cnv.width / 2 - 20 &&
-        y >= buttonY && y <= buttonY + 35) {
-        startGame();
-    }
-    
-    // Reset button
-    if (x >= cnv.width / 2 + 20 && x <= cnv.width / 2 + 120 &&
-        y >= buttonY && y <= buttonY + 35) {
-        resetGame();
     }
 }
 
-// Start game function
-function startGame() {
-    if (!gameState.isGameStarted && !gameState.isGameOver) {
-        gameState.isGameStarted = true;
-        console.log('Game Started!');
+function generateDotsFromMaze(grid) {
+    dotMap = [];
+    totalDots = 0;
+
+    for (let r=0; r<grid.length; r++) {
+        dotMap[r] = [];
+        for (let c=0; c<grid[r].length; c++) {
+            dotMap[r][c] = grid[r][c] === 1;
+            if (dotMap[r][c]) totalDots++;
+        }
     }
 }
 
-// Reset game function
-function resetGame() {
-    gameState.score = 0;
-    gameState.lives = 3;
-    gameState.isGameOver = false;
-    gameState.isGameStarted = false;
-    gameState.dotsCollected = 0;
-    
-    // Reset semua dots
-    gameState.dots.forEach(dot => {
-        dot.collected = false;
-    });
-    
-    console.log('Game Reset!');
-    
-    // Regenerate maze
-    imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
-    generateMaze(imageDataA, ctx, cnv, 35);
+function drawDots(img) {
+    for (let r=0; r<dotMap.length; r++) {
+        for (let c=0; c<dotMap[r].length; c++) {
+            if (!dotMap[r][c]) continue;
+            let cx = c * cellSize + cellSize / 2;
+            let cy = r * cellSize + cellSize / 2;
+            gambar_titik(img, cx, cy, 255, 255, 200);
+        }
+    }
 }
 
-// Handle keyboard untuk Start/Reset
-document.addEventListener('keydown', function(event) {
-    // Space untuk start
-    if (event.key === ' ' && !gameState.isGameStarted) {
-        event.preventDefault();
-        startGame();
+function tryEatDotAt(row, col) {
+    if (!dotMap[row] || dotMap[row][col] !== true) return;
+
+    dotMap[row][col] = false;
+    score += 10;
+    totalDots--;
+
+    if (totalDots === 0) {
+        tampilkanYouWin(score);
     }
-    
-    // R untuk reset
-    if (event.key === 'r' || event.key === 'R') {
-        event.preventDefault();
-        resetGame();
+}
+
+
+function updatePacman() {
+    // Move pacman
+    pacmanX += pacmanDir.x * pacmanSpeed;
+    pacmanY += pacmanDir.y * pacmanSpeed;
+
+    // Hitung row & col baru
+    let newRow = Math.floor(pacmanY / cellSize);
+    let newCol = Math.floor(pacmanX / cellSize);
+
+    // Jika masuk cell baru makan dot
+    if (newRow !== pacmanRow || newCol !== pacmanCol) {
+        pacmanRow = newRow;
+        pacmanCol = newCol;
+        tryEatDotAt(pacmanRow, pacmanCol);
     }
+}
+
+document.addEventListener("keydown", function(e){
+    if (e.key === "ArrowUp") pacmanDir = {x:0,y:-1};
+    if (e.key === "ArrowDown") pacmanDir = {x:0,y:1};
+    if (e.key === "ArrowLeft") pacmanDir = {x:-1,y:0};
+    if (e.key === "ArrowRight") pacmanDir = {x:1,y:0};
 });
 
-// Update canvas click handler untuk handle button clicks
-cnv.addEventListener("click", function (event) {
-    var rect = cnv.getBoundingClientRect();
-    var x = event.clientX - rect.left;
-    var y = event.clientY - rect.top;
-    console.log("x: " + x + " y: " + y);
-    
-    handleButtonClick(x, y);
+
+function renderScore(img) {
+    gambarTeks(img, "SCORE:"+score, 10, 10, 2, {r:255,g:200,b:200});
+}
+
+function renderFrame() {
+    let img = context.getImageData(0,0,canvas.width,canvas.height);
+
+    updatePacman();
+    drawMaze(img);
+    drawDots(img);
+
+    // tampilkan skor
+    renderScore(img);
+
+    // gambar pacman sebagai titik putih
+    gambar_titik(img, pacmanX, pacmanY, 255,255,255);
+
+    context.putImageData(img,0,0);
+}
+
+function gameLoop() {
+    if (sedangDiStartScreen || sedangGameOver || sedangMenang) return;
+
+    renderFrame();
+    requestAnimationFrame(gameLoop);
+}
+
+function mulaiGame() {
+    sedangDiStartScreen = false;
+    sedangGameOver = false;
+    sedangMenang = false;
+
+    score = 0;
+    pacmanRow = 1;
+    pacmanCol = 1;
+    pacmanX = pacmanCol * cellSize + cellSize/2;
+    pacmanY = pacmanRow * cellSize + cellSize/2;
+
+    generateDotsFromMaze(mazeGrid);
+    gameLoop();
+}
+
+document.addEventListener("keydown", function(e){
+    if (e.code !== "Space") return;
+
+    if (sedangDiStartScreen) mulaiGame();
+    else if (sedangGameOver || sedangMenang) tampilkanStartScreen();
 });
 
-// Main render function yang dipanggil setiap frame
-function renderUI() {
-    // Render buttons selalu tampil
-    renderButtons();
-    
-    // Render score board jika game sudah dimulai
-    if (gameState.isGameStarted && !gameState.isGameOver) {
-        updateScoreDisplay();
-        renderDots();
-    }
-    
-    // Render start screen
-    if (!gameState.isGameStarted && !gameState.isGameOver) {
-        renderStartScreen();
-    }
-    
-    // Render game over screen
-    if (gameState.isGameOver) {
-        renderGameOver();
-    }
-}
-
-// Function untuk set game over
-function setGameOver() {
-    gameState.isGameOver = true;
-    gameState.isGameStarted = false;
-    renderGameOver();
-}
-
-// Function untuk mengurangi lives
-function loseLife() {
-    gameState.lives--;
-    if (gameState.lives <= 0) {
-        setGameOver();
-    }
-    updateScoreDisplay();
-}
+tampilkanStartScreen();
