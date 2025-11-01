@@ -1,18 +1,17 @@
-// Global variable untuk grid
-window.grid = [];
-
-function generateMaze(imageDataA, ctx, cnv, cell_width) {
-    return new Promise((resolve) => {
-
+function generateMaze() {
+    return new Promise(async (resolve) => {
         class DisjointSet {
             constructor(n) {
                 this.parent = Array.from({ length: n }, (_, i) => i);
                 this.rank = Array(n).fill(0);
             }
 
+            // mencari parent/root
             find(x) {
-                if (this.parent[x] !== x)
+                // kalau bukan parent akan mencari sampai ketemu parent
+                if (this.parent[x] !== x) {
                     this.parent[x] = this.find(this.parent[x]);
+                }
                 return this.parent[x];
             }
 
@@ -20,11 +19,12 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
                 let rx = this.find(x);
                 let ry = this.find(y);
 
-                // sudah di dalma grup yang sama
+                // jika sudah di dalam grup yang sama
                 if (rx === ry) {
                     return false;
                 }
 
+                // rank = perkiraan tinggi pohon
                 if (this.rank[rx] < this.rank[ry]) {
                     this.parent[rx] = ry;
                 } else if (this.rank[rx] > this.rank[ry]) {
@@ -38,20 +38,70 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
             }
         }
 
-        // Set
+        // STEP 2  : Shuffle Walls
         let walls = [];
-        for (let i = 0; i < cols; i++) {
-            for (let j = 0; j < rows; j++) {
-                let a = index(i, j);
-                if (i < cols - 1) {
-                    walls.push([a, index(i + 1, j), "V"]);
-                }
-                if (j < rows - 1) {
-                    walls.push([a, index(i, j + 1), "H"]);
+        let visual_walls = []; // visualisasi
+        async function daftarWall() {
+            setMessage("Daftarkan wall");
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    let a = index(i, j);
+
+                    let cell = grid[index(i, j)];
+                    cell.color = [255, 180 + j * 4, 180 + i * 2];
+
+                    if (i < cols - 1) {
+                        let b = index(i + 1, j);
+                        walls.push([a, b, "V"]);
+                        visual_walls.push(cell);
+                        cell.highlight = 1; // example
+                        setMessage(
+                            `Cell [${i}, ${j}]  → Cell [${i + 1}, ${j}]
+                            )} (Vertical wall)`
+                        );
+                    }
+
+                    if (j < rows - 1) {
+                        let b = index(i, j + 1);
+                        walls.push([a, b, "H"]);
+                        cell.highlight = 1;
+                        visual_walls.push(cell);
+                        setMessage(
+                            `Cell [${i}, ${j}]  → Cell [${i}, ${
+                                j + 1
+                            }] - (Horizontal wall)`
+                        );
+                    }
+                    drawGrid();
+                    await new Promise((resolve) =>
+                        setTimeout(
+                            resolve,
+                            document.getElementById("speed").value - 250
+                        )
+                    );
                 }
             }
         }
-        walls.sort(() => Math.random() - 0.5);
+        await daftarWall();
+
+        // Shuffle Walls
+        async function acakWall() {
+            setMessage("Acak wall");
+            for (let i = walls.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [walls[i], walls[j]] = [walls[j], walls[i]];
+                [visual_walls[i].color, visual_walls[j].color] = [
+                    visual_walls[j].color,
+                    visual_walls[i].color,
+                ];
+                drawGrid();
+
+                await new Promise((resolve) =>
+                    setTimeout(resolve, document.getElementById("speed").value)
+                );
+            }
+        }
+        await acakWall();
 
         function removeWall(a, b) {
             let dx = a.i - b.i;
@@ -72,14 +122,13 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
             }
         }
 
-
-
         const ds = new DisjointSet(grid.length);
         let wallIndex = 0;
         let batchSize = 1;
 
-        function animateKruskal() {
-  
+        async function animateKruskal() {
+            setMessage("Kruskal");
+            let batchWalls = [];
             for (let c of grid) {
                 c.sedangDicek = false;
             }
@@ -95,25 +144,47 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
 
                 a.sedangDicek = true;
                 b.sedangDicek = true;
+                drawGrid();
 
-                // Cari grup masing-masing
-                const grupA = ds.find(aIdx);
-                const grupB = ds.find(bIdx);
-                // console.log(`Kotak [${a.i},${a.j}] ada di grup #${grupA}`);
-                // console.log(`Kotak [${b.i},${b.j}] ada di grup #${grupB}`);
+                // batchWalls.push([a, b]);
 
-                // cek apakah kedua kotak ini sudah terhubung?
-                // klo belum
+                // drawGrid();
+
+                // jika kedua kotak ini belum terhubung
                 if (ds.union(aIdx, bIdx)) {
                     removeWall(a, b);
-                    a.highlight = 1;
-                    b.highlight = 1;
-                    a.sedangDicek = false;
-                    b.sedangDicek = false;
+                    a.visitted = true;
+                    b.visitted = true;
+
+                    // a.highlight = 1;
+                    // b.highlight = 1;
                 }
+
+                // hapus kembali
+                a.sedangDicek = false;
+                b.sedangDicek = false;
+
+                // setTimeout(() => {
+                //     for (let [a, b] of batchWalls) {
+                //         a.sedangDicek = false;
+                //         b.sedangDicek = false;
+                //     }
+
+                //     if (wallIndex < walls.length) {
+                //         requestAnimationFrame(animateKruskal);
+                //     } else {
+                //         console.log(
+                //             "Maze complete! Grid available:",
+                //             grid.length
+                //         );
+                //         drawGrid();
+                //         resolve();
+                //     }
+                // }, delay);
+                // drawGrid();
             }
 
-            drawGrid();
+            // drawGrid();
 
             if (wallIndex < walls.length) {
                 setTimeout(() => {
@@ -129,51 +200,15 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
                 );
 
                 drawGrid();
-
-                setTimeout(() => {
-                    // Lalu ubah semua warna biru (sudahTerhubung) jadi putih
-                    let fadeSteps = 30; // jumlah langkah fading
-                    let currentStep = 0;
-
-                    function fadeToWhite() {
-                        for (let c of grid) {
-                            if (c.sudahTerhubung) {
-                                // setiap langkah, kurangi birunya pelan-pelan
-                                c.highlight = 0;
-                                c.sedangDicek = false;
-                                // kurangi warna biru (misal simulasi memutih)
-                                // tapi karena warnanya diatur lewat sudahTerhubung,
-                                // kita pakai cara ini: ubah statusnya pelan-pelan
-                                if (currentStep === fadeSteps) {
-                                    c.sudahTerhubung = false; // putih penuh di akhir
-                                }
-                            }
-                        }
-
-                        drawGrid();
-
-                        if (currentStep < fadeSteps) {
-                            currentStep++;
-                            requestAnimationFrame(fadeToWhite);
-                        } else {
-                            console.log("Maze siap dimainkan!");
-                            resolve();
-                        }
-                    }
-
-                    fadeToWhite();
-                }, 500); // diam 1 detik sebelum mulai fade
+                resolve();
             }
         }
 
-        // function animateDraw() {
-        //     drawGrid();
-        //     requestAnimationFrame(animateDraw);
-        // }
+        await animateKruskal();
 
-        drawGrid();
-        setTimeout(() => {
-            animateKruskal();
-        }, delay); // Jeda 1 detik sebelum mulai
+        // // drawGrid();
+        // setTimeout(() => {
+        //     animateKruskal();
+        // }, delay);
     });
 }

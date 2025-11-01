@@ -1,11 +1,17 @@
+// STEP 2  : Shuffle Walls
+// STEP 3  : Algorithm Step Loop (Kruskal)
+// STEP 4  : Maze Completed
+
 async function startGame() {
-    try {
-        await generateMaze(imageDataA, ctx, cnv, 35);
-        console.log("Maze done — starting game loop!");
-        startGameLoop();
-    } catch (err) {
-        console.error("Maze generation failed:", err);
-    }
+    await buatGrid();
+    await generateMaze();
+    // console.log("test");
+    // console.log("Maze done — starting game loop!");
+    // startGameLoop();
+    // try {
+    // } catch (err) {
+    //     console.error("Maze generation failed:", err);
+    // }
 }
 
 window.onload = () => {
@@ -15,9 +21,6 @@ window.onload = () => {
     sedangMenang = false;
 };
 
-// startGame();
-
-// ctx.putImageData(imageDataA, 0, 0);
 document.addEventListener("keydown", function (e) {
     if (e.code !== "Space") {
         return;
