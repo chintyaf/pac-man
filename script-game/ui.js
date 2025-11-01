@@ -243,12 +243,12 @@ function renderFrame() {
     context.putImageData(img, 0, 0);
 }
 
-function gameLoop() {
-    if (sedangDiStartScreen || sedangGameOver || sedangMenang) return;
+// function gameLoop() {
+//     if (sedangDiStartScreen || sedangGameOver || sedangMenang) return;
 
-    renderFrame();
-    requestAnimationFrame(gameLoop);
-}
+//     renderFrame();
+//     requestAnimationFrame(gameLoop);
+// }
 
 function mulaiGame() {
     sedangDiStartScreen = false;
@@ -262,7 +262,7 @@ function mulaiGame() {
     pacmanY = pacmanRow * cellSize + cellSize / 2;
 
     generateDotsFromMaze(mazeGrid);
-    gameLoop();
+    // gameLoop();
 }
 
 document.addEventListener("keydown", function (e) {

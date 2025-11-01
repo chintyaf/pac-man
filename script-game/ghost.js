@@ -1,10 +1,4 @@
-/**
- * Mewakili satu Ghost (musuh).
- * @param {number} x - Posisi awal grid x.
- * @param {number} y - Posisi awal grid y.
- * @param {object} color - Warna ghost (e.g., {r: 255, g: 0, b: 0}).
- * @param {number} tileSize - Ukuran satu petak maze dalam pixel.
- */
+
 class Ghost {
     constructor(x, y, color, tileSize) {
         this.gridX = x; // Posisi di grid maze
