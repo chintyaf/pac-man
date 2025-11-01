@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man - Ghost Test</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .info {
+            text-align: center;
+            margin-top: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .info p {
+            margin: 5px 0;
+        }
+
+        .info .highlight {
+            color: #FF0000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <input type="range" id="speed" min="10" max="1000" value="00">
+        </div>
+        <canvas id="canvas" width="801px" height="401px"></canvas>
+
+    </div>
+
+    <!-- Load semua script yang dibutuhkan -->
+    <script src="/script/utils.js"></script>
+    <script src="/script/fungsi.js"></script>
+    <script src="/script/transformasi.js"></script>
+    <!-- Gunakan maze_modified.js yang expose grid ke global -->
+    <script src="/script-game/maze_revisi.js"></script>
+    <script src="/script-game/ghost.js"></script>
+    <script src="/script-game/pacman.js"></script>
+    <script src="/script-game/ui.js"></script>
+    <script src="test_ghost.js"></script>
+
+    <!-- Inisialisasi canvas dan maze -->
+    <script>
+        var cnv, ctx, imageDataA;
+
+        cnv = document.querySelector("#canvas");
+        ctx = cnv.getContext("2d");
+        imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
+
+        // Generate maze menggunakan fungsi yang sudah ada
+        generateMaze(imageDataA, ctx, cnv, 35);
+
+        ctx.putImageData(imageDataA, 0, 0);
+    </script>
+</body>
+
+</html>

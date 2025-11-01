@@ -4,9 +4,17 @@ cnv = document.querySelector("#canvas");
 ctx = cnv.getContext("2d");
 imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-generateMaze(imageDataA, ctx, cnv, 35);
+// generateMaze(imageDataA, ctx, cnv, 35);
+// tampilkanStartScreen();
 
-ctx.putImageData(imageDataA, 0, 0);
+// tampilkanGameOver(10);
+
+
+
+
+
+console.log("haloo");
+// ctx.putImageData(imageDataA, 0, 0);
 
 cnv.addEventListener("click", function (event) {
     var rect = cnv.getBoundingClientRect();
