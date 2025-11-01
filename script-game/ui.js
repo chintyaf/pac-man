@@ -1,6 +1,3 @@
-var canvas = document.getElementById("canvas");
-var context = canvas.getContext("2d");
-
 var sedangDiStartScreen = true;
 var sedangGameOver = false;
 var sedangMenang = false;
@@ -22,36 +19,60 @@ var pacmanDir = { x: 0, y: 0 };
 
 const pixelFont = {
     A: ["01110", "10001", "10001", "11111", "10001", "10001"],
+    B: ["11110", "10001", "11110", "10001", "10001", "11110"],
     C: ["01110", "10001", "10000", "10000", "10001", "01110"],
+    D: ["11100", "10010", "10001", "10001", "10010", "11100"],
     E: ["11111", "10000", "11110", "10000", "10000", "11111"],
+    F: ["11111", "10000", "11110", "10000", "10000", "10000"],
     G: ["01110", "10000", "10000", "10011", "10001", "01110"],
+    H: ["10001", "10001", "11111", "10001", "10001", "10001"],
+    I: ["01110", "00100", "00100", "00100", "00100", "01110"],
+    J: ["00111", "00010", "00010", "00010", "10010", "01100"],
+    K: ["10001", "10010", "11100", "10010", "10001", "10001"],
+    L: ["10000", "10000", "10000", "10000", "10000", "11111"],
     M: ["10001", "11011", "10101", "10001", "10001", "10001"],
     N: ["10001", "11001", "10101", "10011", "10001", "10001"],
     O: ["01110", "10001", "10001", "10001", "10001", "01110"],
     P: ["11110", "10001", "11110", "10000", "10000", "10000"],
+    Q: ["01110", "10001", "10001", "10101", "10010", "01101"],
     R: ["11110", "10001", "11110", "10100", "10010", "10001"],
     S: ["01111", "10000", "01110", "00001", "00001", "11110"],
     T: ["11111", "00100", "00100", "00100", "00100", "00100"],
     U: ["10001", "10001", "10001", "10001", "10001", "01110"],
     V: ["10001", "10001", "01010", "01010", "00100", "00100"],
     W: ["10001", "10001", "10101", "10101", "11011", "10001"],
+    X: ["10001", "01010", "00100", "00100", "01010", "10001"],
     Y: ["10001", "01010", "00100", "00100", "00100", "00100"],
+    Z: ["11111", "00010", "00100", "01000", "10000", "11111"],
+
     ":": ["00", "11", "00", "00", "11", "00"],
     " ": ["00000", "00000", "00000", "00000", "00000", "00000"],
+    "-": ["00000", "00000", "11111", "00000", "00000", "00000"],
+
+    0: ["01110", "10011", "10101", "11001", "10001", "01110"],
+    1: ["00100", "01100", "00100", "00100", "00100", "01110"],
+    2: ["01110", "10001", "00010", "00100", "01000", "11111"],
+    3: ["11111", "00010", "00100", "00010", "10001", "01110"],
+    4: ["00010", "00110", "01010", "11111", "00010", "00010"],
+    5: ["11111", "10000", "11110", "00001", "00001", "11110"],
+    6: ["00110", "01000", "10000", "11110", "10001", "01110"],
+    7: ["11111", "00001", "00010", "00100", "01000", "01000"],
+    8: ["01110", "10001", "01110", "10001", "10001", "01110"],
+    9: ["01110", "10001", "10001", "01111", "00001", "01110"],
 };
 
 function getCharPattern(ch) {
     return pixelFont[ch] || pixelFont[" "];
 }
 
-function gambar_titik(img, x, y, r, g, b) {
-    if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
-    let i = 4 * (Math.floor(x) + Math.floor(y) * img.width);
-    img.data[i] = r;
-    img.data[i + 1] = g;
-    img.data[i + 2] = b;
-    img.data[i + 3] = 255;
-}
+// function gbr_titik(img, x, y, r, g, b) {
+//     if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
+//     let i = 4 * (Math.floor(x) + Math.floor(y) * img.width);
+//     img.data[i] = r;
+//     img.data[i + 1] = g;
+//     img.data[i + 2] = b;
+//     img.data[i + 3] = 255;
+// }
 
 function gambarHuruf(img, ch, x, y, scale, color) {
     let pat = getCharPattern(ch);
@@ -60,7 +81,7 @@ function gambarHuruf(img, ch, x, y, scale, color) {
             if (pat[row][col] === "1") {
                 for (let sy = 0; sy < scale; sy++) {
                     for (let sx = 0; sx < scale; sx++) {
-                        gambar_titik(
+                        gbr_titik(
                             img,
                             x + col * scale + sx,
                             y + row * scale + sy,
@@ -88,46 +109,46 @@ function tampilkanStartScreen() {
     sedangGameOver = false;
     sedangMenang = false;
 
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    let img = context.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, cnv.width, cnv.height);
+    let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-    gambarTeks(img, "PACMAN", canvas.width / 2 - 135, 125, 8, {
+    gambarTeks(img, "PACMAN", cnv.width / 2 - 135, 125, 8, {
         r: 255,
         g: 120,
         b: 180,
     });
-    gambarTeks(img, "PRESS SPACE", canvas.width / 2 - 100, 300, 3, {
-        r: 255,
-        g: 120,
-        b: 180,
-    });
-    gambarTeks(img, "TO START", canvas.width / 2 - 70, 330, 3, {
+    gambarTeks(img, "PRESS SPACE", cnv.width / 2 - 100, 250, 3, {
         r: 255,
         g: 180,
         b: 210,
     });
-    context.putImageData(img, 0, 0);
+    gambarTeks(img, "TO START", cnv.width / 2 - 70, 280, 3, {
+        r: 255,
+        g: 180,
+        b: 210,
+    });
+    ctx.putImageData(img, 0, 0);
 }
 
 function tampilkanGameOver(score) {
     sedangGameOver = true;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    let img = context.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, cnv.width, cnv.height);
+    let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
     gambarTeks(img, "GAME OVER", 90, 150, 4, { r: 255, g: 100, b: 100 });
     gambarTeks(img, "SCORE:" + score, 120, 240, 2, { r: 255, g: 180, b: 180 });
     console.log(score);
-    context.putImageData(img, 0, 0);
+    ctx.putImageData(img, 0, 0);
 }
 
 function tampilkanYouWin(score) {
     sedangMenang = true;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    let img = context.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, cnv.width, cnv.height);
+    let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
     gambarTeks(img, "YOU WIN", 110, 150, 4, { r: 255, g: 150, b: 200 });
     gambarTeks(img, "SCORE:" + score, 120, 240, 2, { r: 255, g: 200, b: 220 });
-    context.putImageData(img, 0, 0);
+    ctx.putImageData(img, 0, 0);
 }
 
 const mazeGrid = [
@@ -149,7 +170,7 @@ function drawMaze(img) {
                     : { r: 0, g: 0, b: 0 };
             for (let y = 0; y < cellSize; y++) {
                 for (let x = 0; x < cellSize; x++) {
-                    gambar_titik(
+                    gbr_titik(
                         img,
                         c * cellSize + x,
                         r * cellSize + y,
@@ -182,7 +203,7 @@ function drawDots(img) {
             if (!dotMap[r][c]) continue;
             let cx = c * cellSize + cellSize / 2;
             let cy = r * cellSize + cellSize / 2;
-            gambar_titik(img, cx, cy, 255, 255, 200);
+            gbr_titik(img, cx, cy, 255, 255, 200);
         }
     }
 }
@@ -228,7 +249,7 @@ function renderScore(img) {
 }
 
 function renderFrame() {
-    let img = context.getImageData(0, 0, canvas.width, canvas.height);
+    let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
     updatePacman();
     drawMaze(img);
@@ -238,9 +259,9 @@ function renderFrame() {
     renderScore(img);
 
     // gambar pacman sebagai titik putih
-    gambar_titik(img, pacmanX, pacmanY, 255, 255, 255);
+    gbr_titik(img, pacmanX, pacmanY, 255, 255, 255);
 
-    context.putImageData(img, 0, 0);
+    ctx.putImageData(img, 0, 0);
 }
 
 // function gameLoop() {
@@ -265,9 +286,9 @@ function mulaiGame() {
     // gameLoop();
 }
 
-document.addEventListener("keydown", function (e) {
-    if (e.code !== "Space") return;
+// document.addEventListener("keydown", function (e) {
+//     if (e.code !== "Space") return;
 
-    if (sedangDiStartScreen) mulaiGame();
-    else if (sedangGameOver || sedangMenang) tampilkanStartScreen();
-});
+//     if (sedangDiStartScreen) mulaiGame();
+//     else if (sedangGameOver || sedangMenang) tampilkanStartScreen();
+// });

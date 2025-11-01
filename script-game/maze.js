@@ -3,7 +3,6 @@ window.grid = [];
 
 function generateMaze(imageDataA, ctx, cnv, cell_width) {
     return new Promise((resolve) => {
-        // const w = 100;
 
         class DisjointSet {
             constructor(n) {
@@ -80,9 +79,7 @@ function generateMaze(imageDataA, ctx, cnv, cell_width) {
         let batchSize = 1;
 
         function animateKruskal() {
-            // ... your maze code ...
-            // when done:
-
+  
             for (let c of grid) {
                 c.sedangDicek = false;
             }

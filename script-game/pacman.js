@@ -240,10 +240,9 @@ function gameLoop() {
 }
 
 function startGameLoop() {
-    const w = 35;
-    window.cellWidth = w; // <--- penting, biar this.w kebaca
+    window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
 
-    pacman = new Pacman(1, 1, w / 2 - 4);
+    pacman = new Pacman(0, 0, w / 2 - 4);
 
     // 3️⃣ Gunakan document biar selalu nangkep input
     document.addEventListener("keydown", (e) => {

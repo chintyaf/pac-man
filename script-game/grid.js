@@ -1,4 +1,4 @@
-cell_width = 35;
+// cell_width = 40;
 
 let delay = document.getElementById("speed").value;
 
