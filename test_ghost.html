@@ -12,9 +12,11 @@
             margin-top: 15px;
             font-family: Arial, sans-serif;
         }
+
         .info p {
             margin: 5px 0;
         }
+
         .info .highlight {
             color: #FF0000;
             font-weight: bold;
@@ -24,8 +26,11 @@
 
 <body>
     <div class="container">
+        <div>
+            <input type="range" id="speed" min="10" max="1000" value="100">
+        </div>
         <canvas id="canvas" width="801px" height="401px"></canvas>
-        
+
     </div>
 
     <!-- Load semua script yang dibutuhkan -->
@@ -36,9 +41,9 @@
     <script src="/script-game/maze_revisi.js"></script>
     <script src="/script-game/ghost.js"></script>
     <script src="/script-game/pacman.js"></script>
-    <!-- <script src="/script-game/ui.js"></script> -->
+    <script src="/script-game/ui.js"></script>
     <script src="test_ghost.js"></script>
-    
+
     <!-- Inisialisasi canvas dan maze -->
     <script>
         var cnv, ctx, imageDataA;
