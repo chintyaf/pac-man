@@ -38,6 +38,9 @@ function generateMaze() {
             }
         }
 
+
+
+
         // STEP 2  : Shuffle Walls
         let walls = [];
         let visual_walls = []; // visualisasi
@@ -161,6 +164,8 @@ function generateMaze() {
                 }
 
                 // hapus kembali
+                a.highlight -= 0.5;
+                b.highlight -= 0.5;
                 a.sedangDicek = false;
                 b.sedangDicek = false;
 
@@ -202,6 +207,13 @@ function generateMaze() {
                 drawGrid();
                 resolve();
             }
+        }
+
+        // menyiapkan warna utk algoritma kruskal
+        for (let c of grid) {
+            c.sedangDicek = false;
+            // c.color = [255, 171, 175];
+            c.highlight = 1;
         }
 
         await animateKruskal();

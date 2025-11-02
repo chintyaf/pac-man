@@ -7,69 +7,106 @@ class Cell {
         this.i = i;
         this.j = j;
         this.walls = [true, true, true, true];
-        this.color = [252, 230, 233]; // default color (RGB)
-        this.highlight = 0;
+        this.color = [255, 255, 255];
+        this.line_color = [173, 59, 100];
         this.sudahTerhubung = false;
         this.sedangDicek = false;
         this.visitted = false;
+        this.highlight = 0; // maze cek 2x horizontal & vertikal
+    }
+
+    drawWall(x, y, r, g, b, stroke) {
+        for (let s = 0; s < stroke; s++) {
+            if (this.walls[0]) {
+                dda_line(imageDataA, x, y + s, x + w, y + s, r, g, b); // top
+            }
+            if (this.walls[1]) {
+                dda_line(imageDataA, x + w - s, y, x + w - s, y + w, r, g, b); // right
+            }
+            if (this.walls[2]) {
+                dda_line(imageDataA, x, y + w - s, x + w, y + w - s, r, g, b); // bottom
+            }
+            if (this.walls[3]) {
+                dda_line(imageDataA, x + s, y, x + s, y + w, r, g, b); // left
+            }
+        }
+    }
+
+    colorCell(x, y, r, g, b) {
+        for (let px = 0; px < w; px++) {
+            for (let py = 0; py < w; py++) {
+                gbr_titik(imageDataA, x + px, y + py, r, g, b);
+            }
+        }
     }
 
     show() {
         const x = this.i * w;
         const y = this.j * w;
 
-        let r, g, b;
-
         // State
         // Belum dikunjungi -- merah
         // Sedang -- kuning
         // sudah -- hijau
+        var current_color = [];
+        var current_line = [];
+
+        console.log("else");
+        current_color = [this.color[0], this.color[1], this.color[2]];
+        current_line = [
+            this.line_color[0],
+            this.line_color[1],
+            this.line_color[2],
+        ];
 
         if (this.sedangDicek) {
-            r = 255;
-            g = 250;
-            b = 210;
+            // hijau
+            console.log("sedang dicek");
+            current_color = [169, 230, 159];
+            current_line = [10, 200, 63];
+        } else if (this.highlight < 1 && this.highlight > 0) {
+            current_color = [225, 235, 240];
         }
-        // else if (this.highlight > 0) {
-        //     // idk
-        //     r = 205;
-        //     g = 252;
-        //     b = 197;
         // } else if (this.sudahTerhubung) {
         //     r = 255;
         //     g = 255;
         //     b = 255;
         // }
         else if (this.visitted) {
-            r = 255;
-            g = 250;
-            b = 250;
-        } else {
-            r = this.color[0];
-            g = this.color[1];
-            b = this.color[2];
+            console.log("visitted");
+
+            current_color = [252, 242, 252];
+            // current_line = [0, 0, 0];
         }
+        // else {
+        //     console.log("else");
+        //     current_color = [this.color[0], this.color[1], this.color[2]];
+        //     current_line = [
+        //         this.line_color[0],
+        //         this.line_color[1],
+        //         this.line_color[2],
+        //     ];
+        // }
+
+        this.colorCell(
+            x,
+            y,
+            current_color[0],
+            current_color[1],
+            current_color[2]
+        );
+        this.drawWall(
+            x,
+            y,
+            current_line[0],
+            current_line[1],
+            current_line[2],
+            2
+        );
 
         // Draw pixels
-        for (let px = 1; px < w - 1; px++) {
-            for (let py = 1; py < w - 1; py++) {
-                gbr_titik(imageDataA, x + px, y + py, r, g, b);
-            }
-        }
 
         // Walls line
-        if (this.walls[0]) {
-            dda_line(imageDataA, x, y, x + w, y, 0, 0, 0);
-        }
-        if (this.walls[1]) {
-            dda_line(imageDataA, x + w, y, x + w, y + w, 0, 0, 0);
-        }
-        if (this.walls[2]) {
-            dda_line(imageDataA, x + w, y + w, x, y + w, 0, 0, 0);
-        }
-        if (this.walls[3]) {
-            dda_line(imageDataA, x, y + w, x, y, 0, 0, 0);
-        }
     }
 
     setColor(in_r, in_g, in_b) {
@@ -130,5 +167,4 @@ async function buatGrid() {
             );
         }
     }
-    // resolve();
 }

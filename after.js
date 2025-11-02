@@ -5,9 +5,9 @@
 async function startGame() {
     await buatGrid();
     await generateMaze();
+    console.log("Maze done — starting game loop!");
+    startGameLoop();
     // console.log("test");
-    // console.log("Maze done — starting game loop!");
-    // startGameLoop();
     // try {
     // } catch (err) {
     //     console.error("Maze generation failed:", err);
