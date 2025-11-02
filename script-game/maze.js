@@ -359,8 +359,9 @@ function generateMaze() {
                 drawGrid();
                 // a.visitted = true;
                 // b.visitted = true;
-                a.highlight -= 0.5;
-                b.highlight -= 0.5;
+                a.checked += 1;
+                b.checked += 1;
+                console.log(a.checked, b.checked);
                 await sleep(delay * 5);
             }
 

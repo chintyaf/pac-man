@@ -12,7 +12,7 @@ class Cell {
         this.terhubungKeParent = false; // Biru - sudah terhubung ke root
         this.unionDecision = false; // Kuning - sedang union
         this.visitted = false;
-        this.highlight = 0;
+        this.checked = 0;
         this.showIndex = false; // Tampilkan index cell
     }
 
@@ -62,10 +62,12 @@ class Cell {
             current_line = [10, 200, 63];
         } else if (this.terhubungKeParent) {
             current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
-        } else if (this.highlight == 0.5) {
-            current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
-        } else if (this.highlight == 0) {
-            current_color = [250, 250, 250]; // Biru muda - terhubung ke parent
+        } else if (this.checked) {
+            current_color = [
+                255,
+                150 + this.checked * 20,
+                200 + this.checked * 15,
+            ]; // Biru muda - terhubung ke parent
         } else if (this.visitted) {
             current_color = [225, 235, 242]; // gray mode
         }
