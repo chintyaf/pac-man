@@ -7,27 +7,28 @@ class Cell {
         this.walls = [true, true, true, true];
         this.color = [255, 255, 255];
         this.line_color = [173, 59, 100];
-        this.sudahTerhubung = false;
-        this.sedangDicek = false;
-        this.menujuParent = false;
-        this.adalahParent = false;
+        this.sedangDicek = false; // Hijau muda - sedang cek node
+        this.adalahParent = false; // Merah - node adalah root
+        this.terhubungKeParent = false; // Biru - sudah terhubung ke root
+        this.unionDecision = false; // Kuning - sedang union
         this.visitted = false;
-        this.highlight = 0; // maze cek 2x horizontal & vertikal
+        this.highlight = 0;
+        this.showIndex = false; // Tampilkan index cell
     }
 
     drawWall(x, y, r, g, b, stroke) {
         for (let s = 0; s < stroke; s++) {
             if (this.walls[0]) {
-                dda_line(imageDataA, x, y + s, x + w, y + s, r, g, b); // top
+                dda_line(imageDataA, x, y + s, x + w, y + s, r, g, b);
             }
             if (this.walls[1]) {
-                dda_line(imageDataA, x + w - s, y, x + w - s, y + w, r, g, b); // right
+                dda_line(imageDataA, x + w - s, y, x + w - s, y + w, r, g, b);
             }
             if (this.walls[2]) {
-                dda_line(imageDataA, x, y + w - s, x + w, y + w - s, r, g, b); // bottom
+                dda_line(imageDataA, x, y + w - s, x + w, y + w - s, r, g, b);
             }
             if (this.walls[3]) {
-                dda_line(imageDataA, x + s, y, x + s, y + w, r, g, b); // left
+                dda_line(imageDataA, x + s, y, x + s, y + w, r, g, b);
             }
         }
     }
@@ -44,58 +45,30 @@ class Cell {
         const x = this.i * w;
         const y = this.j * w;
 
-        // State
-        // Belum dikunjungi -- merah
-        // Sedang -- kuning
-        // sudah -- hijau
-        var current_color, current_line;
-
-        current_color = [this.color[0], this.color[1], this.color[2]];
-        current_line = [
+        let current_color = [this.color[0], this.color[1], this.color[2]];
+        let current_line = [
             this.line_color[0],
             this.line_color[1],
             this.line_color[2],
         ];
 
+        // Prioritas visualisasi (dari paling penting)
         if (this.adalahParent) {
-            console.log("parent");
-            current_color = [255, 0, 0];
-        }
-
-        if (this.sedangDicek) {
-            // hijau
-            // console.log("sedang dicek");
-            current_color = [169, 230, 159];
+            current_color = [255, 100, 100]; // Merah - root/parent
+        } else if (this.unionDecision) {
+            current_color = [255, 230, 100]; // Kuning - keputusan union
+        } else if (this.sedangDicek) {
+            current_color = [169, 230, 159]; // Hijau muda - sedang dicek
             current_line = [10, 200, 63];
+        } else if (this.terhubungKeParent) {
+            current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
+        } else if (this.highlight == 0.5) {
+            current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
+        } else if (this.highlight == 0) {
+            current_color = [250, 250, 250]; // Biru muda - terhubung ke parent
+        } else if (this.visitted) {
+            current_color = [225, 235, 242]; // gray mode
         }
-        // if (this.highlight < 1 && this.highlight > 0) {
-        //     current_color = [225, 235, 240];
-        //     // console.log("cek 1x");
-        // }
-        if (this.terhubungKeParent) {
-            console.log("menuju parent");
-            current_color = [255, 0, 0];
-        }
-
-        // } else if (this.sudahTerhubung) {
-        //     r = 255;
-        //     g = 255;
-        //     b = 255;
-        // }
-        // else if (this.visitted) {
-        //     console.log("lupa :D");
-        //     current_color = [252, 242, 252];
-        //     // current_line = [0, 0, 0];
-        // }
-        // else {
-        //     console.log("else");
-        //     current_color = [this.color[0], this.color[1], this.color[2]];
-        //     current_line = [
-        //         this.line_color[0],
-        //         this.line_color[1],
-        //         this.line_color[2],
-        //     ];
-        // }
 
         this.colorCell(
             x,
@@ -112,13 +85,19 @@ class Cell {
             current_line[2],
             2
         );
+
+        // Tampilkan index jika diperlukan
+        // if (this.showIndex) {
+        //     const cellIndex = this.i + this.j * cols; // Sesuaikan dengan cara kalkulasi index kamu
+        //     this.drawIndex(x, y, cellIndex);
+        //     console.log("showindex");
+        // }
     }
 
     setColor(in_r, in_g, in_b) {
         this.color = [in_r, in_g, in_b];
     }
 }
-
 window.grid = [];
 const grid = window.grid;
 

@@ -136,147 +136,164 @@ function generateMaze() {
                 this.rank = Array(n).fill(0);
             }
 
-            // mencari parent/root
-            // async find(x) {
-            //     var cell = grid[x];
-            //     cell.sedangDicek = true; // highlight cell yang lagi dicek
-            //     setMessage(`Memeriksa node ${x}`);
-            //     drawGrid();
-            //     await sleep(delay * 10);
-
-            //     // kalau bukan parent akan mencari sampai ketemu parent
-            //     if (this.parent[x] !== x) {
-            //         setMessage(
-            //             `*** Node ${x} bukan parent, menuju node ${this.parent[x]}`
-            //         );
-            //         // highlight jalur menuju parent
-            //         const nextIndex = this.parent[x];
-            //         const nextCell = grid[nextIndex];
-            //         nextCell.menujuParent = true;
-            //         drawGrid();
-            //         await sleep(delay * 10);
-            //         // await sleep(delay);
-
-            //         const root = await this.find(nextIndex); // <-- pakai await di sini
-
-            //         // pas “balik” dari rekursi, spread warna balik ke bawah
-            //         // cell.menujuParent = false;
-            //         // cell.sedangDicek = false;
-            //         // cell.terhubungKeParent = true;
-            //         // drawGrid();
-            //         // await sleep(delay * 10);;
-
-            //         setMessage(`*** Node ${x} terhubung ke parent ${root}`);
-            //         await sleep(delay * 10);
-
-            //         return root;
-            //     }
-
-            //     // kalau sudah parent, bisa beri warna beda misalnya:
-            //     cell.adalahParent = true;
-            //     drawGrid();
-            //     console.log(grid[this.parent[x]]);
-            //     setMessage(`Node ${x} adalah parent/root`);
-            //     await sleep(delay * 10);
-            //     // cell.adalahParent = false;
-            //     // cell.sedangDicek = false; // reset setelah tampil
-
-            //     // cell.adalahParent = true;
-
-            //     return this.parent[x];
-            // }
-
-            // mencari parent/root dengan animasi traversal penuh (C → B → A)
+            // Mencari parent/root dengan visualisasi step-by-step
             async find(x) {
                 const cell = grid[x];
 
-                // 1️⃣ Tandai node sedang dicek
+                // 1️Tandai node sedang dicek (warna hijau muda)
                 cell.sedangDicek = true;
-                setMessage(`Memeriksa node ${x}`);
+                cell.showIndex = true; // Tampilkan index
+                setMessage(`🔍 testt Memeriksa node ${x}`);
                 drawGrid();
+
                 await sleep(delay * 10);
 
                 // 2️⃣ Jika bukan parent, lanjut ke parent-nya
                 if (this.parent[x] !== x) {
                     const nextIndex = this.parent[x];
-                    const nextCell = grid[nextIndex];
 
-                    setMessage(
-                        `*** Node ${x} bukan parent, menuju node ${nextIndex}`
-                    );
-                    nextCell.menujuParent = true;
-                    drawGrid();
+                    setMessage(`📍 Node ${x} → menuju parent ${nextIndex}`);
                     await sleep(delay * 10);
 
-                    // Rekursi ke parent (biar urutan ke atas kelihatan)
+                    // Rekursi ke parent (visualisasi naik ke atas)
                     const root = await this.find(nextIndex);
 
-                    // 3️⃣ Setelah balik dari rekursi
-                    // cell.menujuParent = false;
-                    // cell.sedangDicek = false;
-                    cell.terhubungKeParent = true;
+                    // 3️⃣ Setelah dapat root, hubungkan langsung (path compression)
                     this.parent[x] = root;
-                    setMessage(`*** Node ${x} terhubung ke parent ${root}`);
+                    cell.sedangDicek = false;
+                    cell.terhubungKeParent = true;
+                    cell.showIndex = true; // Tetap tampilkan index
+
+                    setMessage(`🔗 Node ${x} terhubung ke root ${root}`);
                     drawGrid();
                     await sleep(delay * 10);
 
                     return root;
                 }
 
-                // 4️⃣ Kalau sudah parent (root)
+                // 4️⃣ Jika ini adalah root (warna merah)
                 cell.sedangDicek = false;
                 cell.adalahParent = true;
-                setMessage(`Node ${x} adalah parent/root`);
+                cell.showIndex = true; // Tampilkan index root
+                setMessage(`👑 Node ${x} adalah root/parent`);
                 drawGrid();
-                await sleep(delay * 20); // biar kelihatan jelas
-
-                // opsional: tetap nyala atau reset warna parent setelah beberapa saat
-                // cell.adalahParent = false;
-                // drawGrid();
+                await sleep(delay * 15);
 
                 return this.parent[x];
             }
 
             async union(x, y) {
-                setMessage(`Union (${x}, ${y}) - mencari root masing-masing`);
+                // Reset semua state visualisasi sebelum mulai
+                for (let c of grid) {
+                    c.sedangDicek = false;
+
+                    c.adalahParent = false;
+                    c.terhubungKeParent = false;
+                    c.unionDecision = false;
+                    c.showIndex = false;
+                }
+                drawGrid();
+
+                setMessage(
+                    `🔄 Union (${x}, ${y}) - mencari root masing-masing`
+                );
+
+                // Highlight cell yang akan di-union
+                grid[x].sedangDicek = true;
+                grid[y].sedangDicek = true;
+                drawGrid();
+                await sleep(delay * 3);
+
+                grid[x].sedangDicek = false;
+                grid[y].sedangDicek = false;
+                drawGrid();
+
+                // Cari root x
+                grid[x].sedangDicek = true;
+                drawGrid();
+
+                setMessage(`🔍 Mencari root dari node ${x}...`);
+                await sleep(delay * 5);
                 let rx = await this.find(x);
+
+                // Reset visualisasi find sebelum cari root y
+                for (let c of grid) {
+                    c.sedangDicek = false;
+                    c.adalahParent = false;
+                    c.terhubungKeParent = false;
+                    c.showIndex = false;
+                }
+                drawGrid();
+                await sleep(delay * 5);
+
+                // Cari root y
+                grid[y].sedangDicek = true;
+                setMessage(`🔍 Mencari root dari node ${y}...`);
+                await sleep(delay * 5);
                 let ry = await this.find(y);
 
-                // jika sudah di dalam grup yang sama
+                // Reset visualisasi setelah find
+                for (let c of grid) {
+                    c.sedangDicek = false;
+                    c.adalahParent = false;
+                    c.terhubungKeParent = false;
+                    c.showIndex = false;
+                }
+                drawGrid();
+
+                // Jika sudah dalam satu set
                 if (rx === ry) {
+                    grid[rx].showIndex = true;
+                    grid[rx].unionDecision = true;
+                    drawGrid();
                     setMessage(
-                        `Node ${x} dan ${y} sudah dalam satu set (root: ${rx})`
+                        `✅ Node ${x} dan ${y} sudah dalam satu set (root: ${rx})`
                     );
+                    await sleep(delay * 15);
+
+                    grid[rx].showIndex = false;
+                    grid[rx].unionDecision = false;
                     return false;
                 }
 
-                // rank = perkiraan tinggi pohon
+                // Visualisasi keputusan union (warna kuning)
+                grid[rx].unionDecision = true;
+                grid[ry].unionDecision = true;
+                grid[rx].showIndex = true;
+                grid[ry].showIndex = true;
+                drawGrid();
+
+                // Union by rank
                 if (this.rank[rx] < this.rank[ry]) {
                     this.parent[rx] = ry;
-                    // setMessage(
-                    //     `Root ${rx} bergabung ke ${ry} (rank ${this.rank[ry]} lebih tinggi)`
-                    // );
+                    setMessage(
+                        `⚡ Root ${rx} bergabung ke ${ry} (rank: ${this.rank[ry]} > ${this.rank[rx]})`
+                    );
                 } else if (this.rank[rx] > this.rank[ry]) {
                     this.parent[ry] = rx;
-                    // setMessage(
-                    //     `Root ${ry} bergabung ke ${rx} (rank ${this.rank[rx]} lebih tinggi)`
-                    // );
+                    setMessage(
+                        `⚡ Root ${ry} bergabung ke ${rx} (rank: ${this.rank[rx]} > ${this.rank[ry]})`
+                    );
                 } else {
                     this.parent[ry] = rx;
                     this.rank[rx]++;
-                    // setMessage(
-                    //     `Rank sama, ${ry} bergabung ke ${rx}, rank ${rx} bertambah menjadi ${this.rank[rx]}`
-                    // );
+                    setMessage(
+                        `⚡ Rank sama (${
+                            this.rank[rx] - 1
+                        }), ${ry} bergabung ke ${rx}, rank ${rx} → ${
+                            this.rank[rx]
+                        }`
+                    );
                 }
-                await sleep(delay * 10);
 
+                await sleep(delay * 15);
+
+                // Reset state union decision
+                grid[rx].unionDecision = false;
+                grid[ry].unionDecision = false;
+                grid[rx].showIndex = false;
+                grid[ry].showIndex = false;
                 drawGrid();
-                // await sleep(delay);
-                await sleep(delay * 10);
-
-                // for (let c of grid) {
-                //     c.sedangDicek = false;
-                // }
 
                 return true;
             }
@@ -287,11 +304,15 @@ function generateMaze() {
         let batchSize = 1;
 
         async function animateKruskal() {
-            setMessage("Kruskal");
+            setMessage("Memulai Algoritma Kruskal");
+
+            // Reset semua state
             for (let c of grid) {
                 c.sedangDicek = false;
                 c.adalahParent = false;
-                c.menujuParent = false;
+                c.terhubungKeParent = false;
+                c.unionDecision = false;
+                c.showIndex = false;
             }
 
             for (
@@ -303,42 +324,67 @@ function generateMaze() {
                 const a = grid[aIdx];
                 const b = grid[bIdx];
 
-                // STEP 1 : Cek 2 cell yang berhubungan denan wall
                 a.sedangDicek = true;
                 b.sedangDicek = true;
+                setMessage(
+                    `Memproses wall #${wallIndex}: cell ${aIdx} ↔ ${bIdx}`
+                );
                 drawGrid();
+                await sleep(delay * 3);
 
-                // STEP 2 : FIND and UNION
-                // jika kedua kotak ini belum terhubung
-                if (ds.union(aIdx, bIdx)) {
+                // Proses union (akan otomatis visualisasi find)
+                const connected = await ds.union(aIdx, bIdx);
+
+                if (connected) {
                     removeWall(a, b);
-                    a.visitted = true;
-                    b.visitted = true;
+
+                    setMessage(
+                        `✅ Wall #${wallIndex} dihapus! Cell ${aIdx} dan ${bIdx} terhubung`
+                    );
+
+                    a.sedangDicek = true;
+                    b.sedangDicek = true;
+                    drawGrid();
+
+                    console.log(a.highlight, b.highlight);
+                } else {
+                    setMessage(
+                        `❌ Wall #${wallIndex} tidak dihapus (sudah terhubung)`
+                    );
                 }
 
-                // LAST STEP : hapus efek
-                // hapus kembali
+                await sleep(delay * 5);
+
+                // Reset highlight
+                drawGrid();
+                // a.visitted = true;
+                // b.visitted = true;
                 a.highlight -= 0.5;
                 b.highlight -= 0.5;
-                a.sedangDicek = false;
-                b.sedangDicek = false;
+                await sleep(delay * 5);
             }
 
             if (wallIndex < walls.length) {
-                await sleep(delay + 100);
+                await sleep(delay);
                 setTimeout(() => {
                     requestAnimationFrame(animateKruskal);
                 }, delay);
             } else {
+                // Selesai
                 for (let c of grid) {
                     c.sedangDicek = false;
+                    c.adalahParent = false;
+                    c.terhubungKeParent = false;
+                    c.unionDecision = false;
+                    c.showIndex = false;
                 }
+
+                setMessage("Maze selesai dibuat!");
+                drawGrid();
                 console.log(
                     "Maze complete! Grid available:",
                     window.grid.length
                 );
-
-                drawGrid();
                 resolve();
             }
         }
@@ -346,7 +392,7 @@ function generateMaze() {
         // menyiapkan warna utk algoritma kruskal
         for (let c of grid) {
             c.sedangDicek = false;
-            // c.color = [255, 171, 175];
+            c.color = [252, 210, 223];
             c.highlight = 1;
         }
 
