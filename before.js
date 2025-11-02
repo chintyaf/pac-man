@@ -13,17 +13,30 @@ cnv.addEventListener("click", function (event) {
 
 const cell_width = 40;
 
-const speedSlider = document.getElementById("speed");
-const speedValue = document.getElementById("speedValue");
-
-// update value saat slider digeser
-speedSlider.addEventListener("input", () => {
-    speedValue.textContent = speedSlider.value;
-});
-
 function setMessage(text) {
     const messageDiv = document.getElementById("message");
     if (messageDiv) {
         messageDiv.querySelector("p").textContent = text;
     }
+}
+
+const speedSlider = document.getElementById("speed");
+const speedValue = document.getElementById("speedValue");
+
+// Konversi "kecepatan" ke "delay" (ms)
+function getDelayFromSpeed(speed) {
+    // Semakin tinggi speed, semakin cepat (delay makin kecil)
+    // Contoh: 1 → 1000ms, 100 → 50ms
+    return Math.round(1050 - Math.pow(speed, 1.2) * 10);
+}
+
+let delay = getDelayFromSpeed(speedSlider.value);
+
+speedSlider.addEventListener("input", () => {
+    speedValue.textContent = speedSlider.value;
+    delay = getDelayFromSpeed(speedSlider.value);
+});
+
+function sleep(ms = delay) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }

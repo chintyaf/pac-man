@@ -1,7 +1,5 @@
 // cell_width = 40;
 
-let delay = document.getElementById("speed").value;
-
 class Cell {
     constructor(i, j) {
         this.i = i;
@@ -11,6 +9,8 @@ class Cell {
         this.line_color = [173, 59, 100];
         this.sudahTerhubung = false;
         this.sedangDicek = false;
+        this.menujuParent = false;
+        this.adalahParent = false;
         this.visitted = false;
         this.highlight = 0; // maze cek 2x horizontal & vertikal
     }
@@ -48,10 +48,8 @@ class Cell {
         // Belum dikunjungi -- merah
         // Sedang -- kuning
         // sudah -- hijau
-        var current_color = [];
-        var current_line = [];
+        var current_color, current_line;
 
-        console.log("else");
         current_color = [this.color[0], this.color[1], this.color[2]];
         current_line = [
             this.line_color[0],
@@ -59,25 +57,36 @@ class Cell {
             this.line_color[2],
         ];
 
+        if (this.adalahParent) {
+            console.log("parent");
+            current_color = [255, 0, 0];
+        }
+
         if (this.sedangDicek) {
             // hijau
-            console.log("sedang dicek");
+            // console.log("sedang dicek");
             current_color = [169, 230, 159];
             current_line = [10, 200, 63];
-        } else if (this.highlight < 1 && this.highlight > 0) {
-            current_color = [225, 235, 240];
         }
+        // if (this.highlight < 1 && this.highlight > 0) {
+        //     current_color = [225, 235, 240];
+        //     // console.log("cek 1x");
+        // }
+        if (this.terhubungKeParent) {
+            console.log("menuju parent");
+            current_color = [255, 0, 0];
+        }
+
         // } else if (this.sudahTerhubung) {
         //     r = 255;
         //     g = 255;
         //     b = 255;
         // }
-        else if (this.visitted) {
-            console.log("visitted");
-
-            current_color = [252, 242, 252];
-            // current_line = [0, 0, 0];
-        }
+        // else if (this.visitted) {
+        //     console.log("lupa :D");
+        //     current_color = [252, 242, 252];
+        //     // current_line = [0, 0, 0];
+        // }
         // else {
         //     console.log("else");
         //     current_color = [this.color[0], this.color[1], this.color[2]];
@@ -103,10 +112,6 @@ class Cell {
             current_line[2],
             2
         );
-
-        // Draw pixels
-
-        // Walls line
     }
 
     setColor(in_r, in_g, in_b) {
@@ -167,4 +172,16 @@ async function buatGrid() {
             );
         }
     }
+}
+
+async function langsung_grid() {
+    for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+            grid.push(new Cell(i, j));
+        }
+    }
+    drawGrid();
+    await new Promise((resolve) =>
+        setTimeout(resolve, document.getElementById("speed").value - 250)
+    );
 }
