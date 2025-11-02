@@ -1,8 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
+body {
+    /* background-color: black; */
+    font-family: "Roboto Mono", monospace;
+    /* color: white; */
+}
+
+h4,
+p {
+    padding: 0px;
+    margin: 0px;
+}
+
 .container {
-    max-width: 1000px;
+    max-width: 801px;
     margin: auto;
     /* height: 500px; */
     /* justify-content: center; */
+}
+
+.content {
+    margin-top: 30px;
+}
+
+.flex-justify-center {
+    display: flex;
+    justify-content: center;
 }
 
 .frame-canvas {
@@ -13,10 +35,34 @@
 
 .message {
     /* width: 801px; */
+    min-width: 401px;
+    margin-top: 30px;
+    /* padding: 40px 40px; */
+    border: 2.5px rgb(195, 50, 106) solid;
+    background-color: rgba(246, 164, 217, 0.182);
+
     text-align: center;
+    min-height: 80px;
+}
+
+.status-header {
+    padding: 20px;
+    padding-bottom: 5px;
+    padding-top: 15px;
+}
+
+.status-msg {
+    padding: 20px;
+    padding-top: 0px;
+    padding-bottom: 10px;
 }
 
 #canvas {
-    margin-top: 80px;
+    margin-top: 20px;
+
     border: 3px solid rgba(213, 54, 115, 1);
+}
+
+#speed {
+    width: 200px;
 }

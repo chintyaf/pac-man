@@ -6,19 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pac-Man</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 </head>
 
 <body>
     <div class="container">
-        <div>
-            <input type="range" id="speed" min="1" max="100" value="40">
-            <span id="speedValue">40</span> %
-        </div>
-        <div class="frame-canvas">
-            <canvas id="canvas" width="801" height="401"></canvas>
-        </div>
-        <div id="message" class="message">
-            <p>pesan</p>
+        <h1 style="text-align: center;">
+            Pacman
+        </h1>
+        <div class="content">
+            <div>
+                <span>Speed</span>
+                <input type="range" id="speed" min="1" max="100" value="40">
+                <span id="speedValue">40</span> %
+            </div>
+            <div class="flex-justify-center">
+                <canvas id="canvas" width="801" height="401"></canvas>
+            </div>
+            <div class="flex-justify-center" s>
+                <div id="message" class="message">
+                    <h4 class="status-header">
+                        Kruskal Algorithm
+                    </h4>
+                    <p class="status-msg">pesan</p>
+                </div>
+            </div>
+
         </div>
     </div>
 

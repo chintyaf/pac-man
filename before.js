@@ -20,14 +20,18 @@ function setMessage(text) {
     }
 }
 
+// Delay
+
 const speedSlider = document.getElementById("speed");
 const speedValue = document.getElementById("speedValue");
 
-// Konversi "kecepatan" ke "delay" (ms)
 function getDelayFromSpeed(speed) {
-    // Semakin tinggi speed, semakin cepat (delay makin kecil)
-    // Contoh: 1 → 1000ms, 100 → 50ms
-    return Math.round(1050 - Math.pow(speed, 1.2) * 10);
+    const minDelay = 20; // fast
+    const maxDelay = 1000; // slow
+    const normalized = (100 - speed) / 100;
+    return Math.round(
+        minDelay + (maxDelay - minDelay) * Math.pow(normalized, 2)
+    );
 }
 
 let delay = getDelayFromSpeed(speedSlider.value);
@@ -35,6 +39,7 @@ let delay = getDelayFromSpeed(speedSlider.value);
 speedSlider.addEventListener("input", () => {
     speedValue.textContent = speedSlider.value;
     delay = getDelayFromSpeed(speedSlider.value);
+    console.log(delay);
 });
 
 function sleep(ms = delay) {

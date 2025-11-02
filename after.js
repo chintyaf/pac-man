@@ -3,7 +3,7 @@
 // STEP 4  : Maze Completed
 
 async function startGame() {
-    await langsung_grid();
+    await buatGrid();
     await generateMaze();
     console.log("Maze done — starting game loop!");
     startGameLoop();
@@ -13,7 +13,6 @@ async function startGame() {
     //     console.error("Maze generation failed:", err);
     // }
 }
-
 
 window.onload = () => {
     tampilkanStartScreen();
