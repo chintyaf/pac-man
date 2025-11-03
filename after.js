@@ -4,6 +4,7 @@
 
 async function startGame() {
     await buatGrid();
+    // await langsung_grid();
     await generateMaze();
     console.log("Maze done — starting game loop!");
     startGameLoop();

@@ -13,35 +13,46 @@ cnv.addEventListener("click", function (event) {
 
 const cell_width = 40;
 
-function setMessage(text) {
-    const messageDiv = document.getElementById("message");
+const messageDiv = document.getElementById("message");
+function setStatus(text) {
     if (messageDiv) {
-        messageDiv.querySelector("p").textContent = text;
+        const headerEl = messageDiv.querySelector(".status-header");
+
+        if (headerEl) headerEl.textContent = text;
     }
 }
 
-// Delay
+function setMessage(text) {
+    if (messageDiv) {
+        const msgEl = messageDiv.querySelector(".status-msg");
 
-const speedSlider = document.getElementById("speed");
-const speedValue = document.getElementById("speedValue");
-
-function getDelayFromSpeed(speed) {
-    const minDelay = 20; // fast
-    const maxDelay = 1000; // slow
-    const normalized = (100 - speed) / 100;
-    return Math.round(
-        minDelay + (maxDelay - minDelay) * Math.pow(normalized, 2)
-    );
+        if (msgEl) msgEl.textContent = text;
+    }
 }
 
-let delay = getDelayFromSpeed(speedSlider.value);
+setupAnimationControls();
+// // Delay
 
-speedSlider.addEventListener("input", () => {
-    speedValue.textContent = speedSlider.value;
-    delay = getDelayFromSpeed(speedSlider.value);
-    console.log(delay);
-});
+// const speedSlider = document.getElementById("speed");
+// const speedValue = document.getElementById("speedValue");
 
-function sleep(ms = delay) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function getDelayFromSpeed(speed) {
+//     const minDelay = 20; // fast
+//     const maxDelay = 1000; // slow
+//     const normalized = (100 - speed) / 100;
+//     return Math.round(
+//         minDelay + (maxDelay - minDelay) * Math.pow(normalized, 2)
+//     );
+// }
+
+// let delay = getDelayFromSpeed(speedSlider.value);
+
+// speedSlider.addEventListener("input", () => {
+//     speedValue.textContent = speedSlider.value;
+//     delay = getDelayFromSpeed(speedSlider.value);
+//     console.log(delay);
+// });
+
+// function sleep(ms = delay) {
+//     return new Promise((resolve) => setTimeout(resolve, ms));
+// }

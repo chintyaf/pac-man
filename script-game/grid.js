@@ -1,4 +1,3 @@
-// cell_width = 40;
 class Cell {
     constructor(i, j) {
         this.i = i;
@@ -7,14 +6,15 @@ class Cell {
         this.color = [255, 255, 255];
         // this.color = [0, 0, 0];
         this.line_color = [173, 59, 100];
-        this.state = "";
-        this.sedangDicek = false; // Hijau muda - sedang cek node
-        this.adalahParent = false; // Merah - node adalah root
-        this.terhubungKeParent = false; // Biru - sudah terhubung ke root
-        this.unionDecision = false; // Kuning - sedang union
-        this.visitted = false;
         this.checked = 0;
-        this.menujuParent = false;
+
+        // STATE
+        this.sedangDicek = false; // Hijau muda - sedang cek node
+        this.isParent = false; // Merah - node adalah root
+        this.isSet = false;
+        // this.terhubungKeParent = false; // Biru - sudah terhubung ke root
+        this.unionDecision = false; // Kuning - sedang union
+        // this.visitted = false;
     }
 
     drawWall(x, y, r, g, b, stroke) {
@@ -65,20 +65,17 @@ class Cell {
         } else if (this.menujuParent) {
             current_color = [255, 180, 100]; // Oranye - path traversal
             current_line = [255, 140, 0];
-        } else if (this.unionDecision) {
-            current_color = [255, 230, 100]; // Kuning - keputusan union
+            // } else if (this.unionDecision) {
+            // current_color = [255, 230, 100]; // Kuning - keputusan union
         } else if (this.sedangDicek) {
-            current_color = [169, 230, 159]; // Hijau muda - sedang dicek
-            current_line = [10, 200, 63];
-        } else if (this.terhubungKeParent) {
-            current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
+            current_color = [169, 240, 149]; // Hijau muda - sedang dicek
+            current_line = [11, 194, 63];
+            // } else if (this.terhubungKeParent) {
+            // current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
         } else if (this.checked) {
             current_color = [
-                // 255,
-                // 150 + this.checked * 22,
-                // 200 + this.checked * 17,
-                230 + this.checked * 20,
-                230 + this.checked * 20,
+                255,
+                200 + this.checked * 20,
                 200 + this.checked * 20,
             ]; // Biru muda - terhubung ke parent
         } else if (this.visitted) {
@@ -105,9 +102,9 @@ class Cell {
 
 window.grid = [];
 const grid = window.grid;
-
 const w = cell_width;
 window.cellWidth = w;
+
 const cols = Math.floor(cnv.width / w);
 const rows = Math.floor(cnv.height / w);
 
@@ -120,21 +117,7 @@ function index(i, j) {
 
 function drawGrid() {
     clearCanvas(255, 255, 255);
-    // clearCanvas(0, 0, 0);
 
-    // console.log("draw");
-    // Kurangi highlight secara bertahap (efek fade)
-    // for (let c of grid) {
-    //     if (c.highlight > 0) {
-    //         c.highlight -= 0.1;
-    //         if (c.highlight <= 0) {
-    //             c.highlight = 0;
-    //             c.sudahTerhubung = true;
-    //         }
-    //     }
-    // }
-
-    // Gambar semua kotak
     for (let c of grid) {
         c.show();
     }
@@ -143,18 +126,14 @@ function drawGrid() {
 
 // STEP 1  : Initialization GRID
 async function buatGrid() {
-    setMessage("Inisiasi Grid, menambahkan cell");
+    setStatus("Initialize Gird");
     // inisiasi grid cell
     for (let j = 0; j < rows; j++) {
         for (let i = 0; i < cols; i++) {
             grid.push(new Cell(i, j));
+            setMessage(`Menambahkan objek Cell(${i}, ${j})`);
             drawGrid();
-            await new Promise((resolve) =>
-                setTimeout(
-                    resolve,
-                    document.getElementById("speed").value - 250
-                )
-            );
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
 }
@@ -166,9 +145,7 @@ async function langsung_grid() {
         }
     }
     drawGrid();
-    await new Promise((resolve) =>
-        setTimeout(resolve, document.getElementById("speed").value - 250)
-    );
+    await new Promise((resolve) => setTimeout(resolve, delay));
 }
 
 function resetState() {

@@ -20,10 +20,25 @@
                 <input type="range" id="speed" min="1" max="100" value="40">
                 <span id="speedValue">40</span> %
             </div>
+
+            <!-- Animation Controls -->
+            <div id="animation-controls" style="margin: 10px 0; display: flex; gap: 10px; justify-content: center;">
+                <button id="pauseBtn" style="padding: 8px 16px; cursor: pointer;">Pause</button>
+                <button id="stepBackBtn" style="padding: 8px 16px; cursor: pointer;">Step Back</button>
+                <button id="skipBtn" style="padding: 8px 16px; cursor: pointer;">Skip Animation</button>
+                <button id="resetBtn" style="padding: 8px 16px; cursor: pointer;">Reset</button>
+            </div>
+
+            <!-- Keyboard shortcuts info -->
+            <div style="text-align: center; font-size: 12px; color: #666; margin: 5px 0;">
+                Shortcuts: <kbd>P</kbd> Pause | <kbd>B</kbd> Back | <kbd>S</kbd> Skip | <kbd>Ctrl+R</kbd> Reset |
+                <kbd>Space</kbd> Start
+            </div>
+
             <div class="flex-justify-center">
                 <canvas id="canvas" width="801" height="401"></canvas>
             </div>
-            <div class="flex-justify-center" s>
+            <div class="flex-justify-center">
                 <div id="message" class="message">
                     <h4 class="status-header">
                         Kruskal Algorithm
@@ -36,13 +51,9 @@
     </div>
 
 
-
-
-
     <script src="/script/utils.js"></script>
     <script src="/script/fungsi.js"></script>
     <script src="/script/transformasi.js"></script>
-
 
     <script src="before.js"></script>
 
@@ -51,6 +62,9 @@
     <!-- <script src="/script-game/ghost.js"></script> -->
     <script src="/script-game/pacman.js"></script>
     <script src="/script-game/ui.js"></script>
+
+    <!-- ADD THE ANIMATION CONTROLS SCRIPT HERE -->
+    <script src="/script-game/animation-controls.js"></script>
 
     <script src="after.js"></script>
 </body>
