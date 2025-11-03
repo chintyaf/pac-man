@@ -11,7 +11,10 @@ function generateMaze() {
                     setStatus(`Input Wall #${counter}`);
                     let a = index(i, j);
 
-                    grid[a].color = [255, 200 + j * 4, 180 + i * 3];
+                    grid[a].color = [40 + +j * 4, 30, 40 + i * 5];
+                    // 40, 30, 40
+                    // grid[a].color = [220 - j */ 4, 96, 245 + i * 3];
+                    // grid[a].line_color = [0, 0, 0];
 
                     if (i < cols - 1) {
                         let b = index(i + 1, j);
@@ -119,6 +122,38 @@ function generateMaze() {
             }
         }
 
+        const open_probability = 0.3; // 30% chance to open a wall
+
+        async function openPath() {
+            for (let [aIdx, bIdx] of walls) {
+                const a = grid[aIdx];
+                const b = grid[bIdx];
+
+                a.sedangDicek = true;
+                b.sedangDicek = true;
+                drawGrid();
+                await sleep(delay);
+
+                // generate random number between 0 and 1
+                if (Math.random() < open_probability) {
+                    // open the path between a and b
+                    a.merah = true;
+                    b.merah = true;
+                    removeWall(a, b);
+                    setMessage(
+                        `Hapus wall di cell [${a.i}, ${a.j}] -- [${b.i}, ${b.j}]`
+                    );
+                    drawGrid();
+                    await sleep(delay);
+
+                    a.merah = false;
+                    b.merah = false;
+                }
+                a.sedangDicek = false;
+                b.sedangDicek = false;
+            }
+        }
+
         async function langsung() {
             setMessage("Daftarkan wall");
             for (let i = 0; i < cols; i++) {
@@ -126,7 +161,7 @@ function generateMaze() {
                     let a = index(i, j);
 
                     let cell = grid[index(i, j)];
-                    cell.color = [255, 200 + j * 4, 180 + i * 3];
+                    cell.color = [220 - j * 4, 96, 245 + i * 3];
 
                     if (i < cols - 1) {
                         let b = index(i + 1, j);
@@ -379,6 +414,8 @@ function generateMaze() {
                     window.grid.length
                 );
                 drawGrid();
+                await openPath();
+
                 resolve();
             }
         }
@@ -386,8 +423,9 @@ function generateMaze() {
         // menyiapkan warna utk algoritma kruskal
         for (let c of grid) {
             c.sedangDicek = false;
-            c.color = [255, 210, 210];
-            c.line_color = [218, 50, 100]
+            c.color = [40, 30, 40];
+            // c.color = [0, 0, 0];
+            c.line_color = [218, 50, 100];
             c.highlight = 1;
         }
 

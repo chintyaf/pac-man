@@ -48,6 +48,7 @@ const pixelFont = {
     ":": ["00", "11", "00", "00", "11", "00"],
     " ": ["00000", "00000", "00000", "00000", "00000", "00000"],
     "-": ["00000", "00000", "11111", "00000", "00000", "00000"],
+    "!": ["00100", "00100", "00100", "00100", "00000", "00100"],
 
     0: ["01110", "10011", "10101", "11001", "10001", "01110"],
     1: ["00100", "01100", "00100", "00100", "00100", "01110"],
@@ -112,17 +113,17 @@ function tampilkanStartScreen() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-    gambarTeks(img, "PACMAN", cnv.width / 2 - 135, 125, 8, {
+    gambarTeks(img, "PACMAN", mid_x - 135, 125, 8, {
         r: 255,
         g: 120,
         b: 180,
     });
-    gambarTeks(img, "PRESS SPACE", cnv.width / 2 - 100, 250, 3, {
+    gambarTeks(img, "PRESS SPACE", mid_x - 100, 250, 3, {
         r: 255,
         g: 180,
         b: 210,
     });
-    gambarTeks(img, "TO START", cnv.width / 2 - 70, 280, 3, {
+    gambarTeks(img, "TO START", mid_x - 70, 280, 3, {
         r: 255,
         g: 180,
         b: 210,
@@ -135,9 +136,12 @@ function tampilkanGameOver(score) {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-    gambarTeks(img, "GAME OVER", 90, 150, 4, { r: 255, g: 100, b: 100 });
-    gambarTeks(img, "SCORE:" + score, 120, 240, 2, { r: 255, g: 180, b: 180 });
-    console.log(score);
+    gambarTeks(img, "GAME OVER", mid_x - 180, 160, 7, { r: 220, g: 10, b: 40 });
+    gambarTeks(img, "SCORE :" + score, mid_x - 75, 225, 3, {
+        r: 220,
+        g: 220,
+        b: 220,
+    });
     ctx.putImageData(img, 0, 0);
 }
 
@@ -146,43 +150,51 @@ function tampilkanYouWin(score) {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-    gambarTeks(img, "YOU WIN", 110, 150, 4, { r: 255, g: 150, b: 200 });
-    gambarTeks(img, "SCORE:" + score, 120, 240, 2, { r: 255, g: 200, b: 220 });
+    gambarTeks(img, "YOU WIN!", mid_x - 160, 160, 7, {
+        r: 255,
+        g: 150,
+        b: 200,
+    });
+    gambarTeks(img, "SCORE:" + score, mid_x - 75, 225, 3, {
+        r: 220,
+        g: 220,
+        b: 220,
+    });
     ctx.putImageData(img, 0, 0);
 }
 
-const mazeGrid = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
+// const mazeGrid = [
+//     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+//     [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+//     [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// ];
 
-function drawMaze(img) {
-    for (let r = 0; r < mazeGrid.length; r++) {
-        for (let c = 0; c < mazeGrid[r].length; c++) {
-            let color =
-                mazeGrid[r][c] === 0
-                    ? { r: 30, g: 70, b: 150 }
-                    : { r: 0, g: 0, b: 0 };
-            for (let y = 0; y < cellSize; y++) {
-                for (let x = 0; x < cellSize; x++) {
-                    gbr_titik(
-                        img,
-                        c * cellSize + x,
-                        r * cellSize + y,
-                        color.r,
-                        color.g,
-                        color.b
-                    );
-                }
-            }
-        }
-    }
-}
+// function drawMaze(img) {
+//     for (let r = 0; r < mazeGrid.length; r++) {
+//         for (let c = 0; c < mazeGrid[r].length; c++) {
+//             let color =
+//                 mazeGrid[r][c] === 0
+//                     ? { r: 30, g: 70, b: 150 }
+//                     : { r: 0, g: 0, b: 0 };
+//             for (let y = 0; y < cellSize; y++) {
+//                 for (let x = 0; x < cellSize; x++) {
+//                     gbr_titik(
+//                         img,
+//                         c * cellSize + x,
+//                         r * cellSize + y,
+//                         color.r,
+//                         color.g,
+//                         color.b
+//                     );
+//                 }
+//             }
+//         }
+//     }
+// }
 
 function generateDotsFromMaze(grid) {
     dotMap = [];

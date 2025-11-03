@@ -3,7 +3,7 @@ class Cell {
         this.i = i;
         this.j = j;
         this.walls = [true, true, true, true];
-        this.color = [255, 255, 255];
+        this.color = [40, 30, 40];
         // this.color = [0, 0, 0];
         this.line_color = [173, 59, 100];
         this.checked = 0;
@@ -14,6 +14,7 @@ class Cell {
         this.isSet = false;
         // this.terhubungKeParent = false; // Biru - sudah terhubung ke root
         this.unionDecision = false; // Kuning - sedang union
+        this.merah = false; // Kuning - sedang union
         // this.visitted = false;
     }
 
@@ -60,7 +61,7 @@ class Cell {
         // Cell Orange --
 
         // Prioritas visualisasi (dari paling penting)
-        if (this.adalahParent) {
+        if (this.adalahParent || this.merah) {
             current_color = [255, 100, 100]; // Merah - root/parent
         } else if (this.menujuParent) {
             current_color = [255, 180, 100]; // Oranye - path traversal
@@ -74,13 +75,21 @@ class Cell {
             // current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
         } else if (this.checked) {
             current_color = [
-                255,
+                // 255 + this.checked * 10,
+                // 130 + this.checked * 20,
+                // 130 + this.checked * 20,
+                210 + this.checked * 10,
                 200 + this.checked * 20,
-                200 + this.checked * 20,
+                220 + this.checked * 20,
             ]; // Biru muda - terhubung ke parent
         } else if (this.visitted) {
+            // current_color = [225, 235, 242]; // gray mode
             current_color = [225, 235, 242]; // gray mode
         }
+
+        // 255 - this.checked * 20,
+        // 210 - this.checked * 20,
+        // 210 - this.checked * 20,
 
         this.colorCell(
             x,
@@ -116,7 +125,7 @@ function index(i, j) {
 }
 
 function drawGrid() {
-    clearCanvas(255, 255, 255);
+    clearCanvas(0, 0, 0);
 
     for (let c of grid) {
         c.show();
