@@ -36,6 +36,7 @@ class Pacman {
         const r = 0,
             g = 0,
             b = 0; // Warna kuning
+        const step = 0.02; // smaller = smoother edge
 
         // Tentukan arah hadap mulut
         let facingAngle = Math.atan2(
@@ -45,10 +46,18 @@ class Pacman {
 
         // Hitung sudut awal dan akhir untuk "irisan" mulut
         let startAngle = facingAngle + this.mouthAngle;
-        let endAngle = facingAngle - this.mouthAngle + Math.PI * 2; // +2PI untuk loop
+        let endAngle = facingAngle - this.mouthAngle; // +2PI untuk loop
+        // let endAngle = facingAngle - this.mouthAngle + Math.PI * 2; // +2PI untuk loop
 
         // Gambar lingkaran "penuh" dikurangi irisan mulut
-        for (let theta = startAngle; theta < endAngle; theta += 0.04) {
+        for (
+            let theta = endAngle;
+            theta <= startAngle + Math.PI * 2;
+            theta += step
+        ) {
+            // skip area mulut
+            const diff = (theta - facingAngle + Math.PI * 2) % (Math.PI * 2);
+            if (diff < this.mouthAngle * 2 && diff > 0) continue;
             // Asumsi dda_line() sudah global
             dda_line(
                 imageDataA,

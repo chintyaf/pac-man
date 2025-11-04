@@ -11,7 +11,7 @@ function generateMaze() {
                     setStatus(`Input Wall #${counter}`);
                     let a = index(i, j);
 
-                    grid[a].color = [40 + +j * 4, 30, 40 + i * 5];
+                    grid[a].color = [100 + +j * 4, 70, 80 + i * 5];
                     // 40, 30, 40
                     // grid[a].color = [220 - j */ 4, 96, 245 + i * 3];
                     // grid[a].line_color = [0, 0, 0];

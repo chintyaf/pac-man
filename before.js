@@ -18,6 +18,7 @@ const cell_width = 40;
 
 const messageDiv = document.getElementById("message");
 function setStatus(text) {
+    messageDiv.style.display = "block";
     if (messageDiv) {
         const headerEl = messageDiv.querySelector(".status-header");
 
