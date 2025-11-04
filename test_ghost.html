@@ -12,6 +12,7 @@
     </style>
 </head>
 <body>
+<<<<<<< Updated upstream
     <h1>Testing Ghost.js</h1>
     <p>Ini adalah halaman khusus untuk mengetes file ghost.js secara terpisah.</p>
     <canvas id="canva1" width="400" height="400"></canvas>
@@ -23,6 +24,38 @@
 
     <script src="js/ghost.js"></script>
 
+=======
+    <div class="container">
+        <canvas id="canvas" width="801px" height="401px"></canvas>
+        <div class="info">
+            <h2 style="color: #FF0000; margin: 10px 0;">Visualisasi Algoritma BFS (Breadth-First Search)</h2>
+            <p>Gunakan <strong>Arrow Keys (↑ ↓ ← →)</strong> untuk menggerakkan Pac-Man</p>
+            <p class="highlight">Ghost menggunakan algoritma BFS untuk mencari jalur terpendek</p>
+            <p style="margin: 10px 0; font-size: 16px; color: #0066CC;">
+                <strong>⏱️ Kecepatan: 0.8 detik per step BFS</strong><br>
+                <span style="font-size: 12px;">(Edit di test_ghost.js → stepDelayMs untuk mengubah kecepatan)</span>
+            </p>
+            <p><strong>Warna Visualisasi:</strong></p>
+            <p style="margin: 3px 0;">🔵 <strong>Biru</strong> = Node yang sudah dikunjungi (Visited Set)</p>
+            <p style="margin: 3px 0;">🟡 <strong>Kuning</strong> = Node dalam antrian (BFS Queue)</p>
+            <p style="margin: 3px 0;">🟢 <strong>Hijau</strong> = Path yang sedang dieksplorasi saat ini</p>
+            <p style="margin: 3px 0;">🔴 <strong>Merah</strong> = Jalur terpendek yang ditemukan (Final Path)</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                ⚙️ Lihat Console (F12) untuk melihat detail setiap step BFS
+            </p>
+        </div>
+    </div>
+
+    <!-- Load semua script yang dibutuhkan -->
+    <script src="/script/utils.js"></script>
+    <script src="/script/fungsi.js"></script>
+    <script src="/script/transformasi.js"></script>
+    <!-- Gunakan maze_modified.js yang expose grid ke global -->
+    <script src="script-game/maze_revisi.js"></script>
+    <script src="/script-game/ghost.js"></script>
+    <script src="/script-game/pacman.js"></script>
+    <!-- <script src="/script-game/ui.js"></script> -->
+>>>>>>> Stashed changes
     <script src="test_ghost.js"></script>
     
 </body>
