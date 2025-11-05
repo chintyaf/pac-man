@@ -124,34 +124,111 @@ function generateMaze() {
 
         const open_probability = 0.3; // 30% chance to open a wall
 
-        async function openPath() {
-            for (let [aIdx, bIdx] of walls) {
-                const a = grid[aIdx];
-                const b = grid[bIdx];
+        // async function openPath() {
+        //     for (let [aIdx, bIdx] of walls) {
+        //         const a = grid[aIdx];
+        //         const b = grid[bIdx];
 
-                a.sedangDicek = true;
-                b.sedangDicek = true;
+        //         // a.sedangDicek = true;
+        //         // b.sedangDicek = true;
+        //         // drawGrid();
+        //         // await sleep(delay);
+
+        //         // generate random number between 0 and 1
+        //         if (Math.random() < open_probability) {
+        //             console.log(a, b);
+        //             // open the path between a and b
+        //             a.merah = true;
+        //             b.merah = true;
+        //             removeWall(a, b);
+        //             setMessage(
+        //                 `Hapus wall di cell [${a.i}, ${a.j}] -- [${b.i}, ${b.j}]`
+        //             );
+        //             drawGrid();
+        //             await sleep(delay * 2);
+
+        //             a.merah = false;
+        //             b.merah = false;
+        //         }
+        //         // a.sedangDicek = false;
+        //         // b.sedangDicek = false;
+        //     }
+        //     drawGrid();
+        // }
+
+        // ==========================
+        // SMART MAZE MODIFIER
+        // ==========================
+        async function openPath(removeCount = 10) {
+            setStatus("Smart Maze Modification");
+            setMessage(
+                `🧠 Modifying maze intelligently (${removeCount} adjustments)`
+            );
+
+            // Helper to check if removing a wall disconnects regions too much
+            function isCriticalWall(a, b) {
+                // Simple heuristic: avoid removing if cells have < 2 open walls
+                const openA = a.walls.filter((w) => !w).length;
+                const openB = b.walls.filter((w) => !w).length;
+                return openA < 1 || openB < 1;
+            }
+
+            // Get all possible "walls" (edges) between adjacent cells
+            const allEdges = [];
+            for (let j = 0; j < rows; j++) {
+                for (let i = 0; i < cols; i++) {
+                    const a = grid[index(i, j)];
+                    if (i < cols - 1) allEdges.push([a, grid[index(i + 1, j)]]);
+                    if (j < rows - 1) allEdges.push([a, grid[index(i, j + 1)]]);
+                }
+            }
+
+            // Collect walls that are still CLOSED (potential candidates to open)
+            const closedEdges = allEdges.filter(([a, b]) => {
+                const dx = a.i - b.i,
+                    dy = a.j - b.j;
+                if (dx === 1 && a.walls[3] && b.walls[1]) return true;
+                if (dx === -1 && a.walls[1] && b.walls[3]) return true;
+                if (dy === 1 && a.walls[0] && b.walls[2]) return true;
+                if (dy === -1 && a.walls[2] && b.walls[0]) return true;
+                return false;
+            });
+
+            // Randomly shuffle candidate edges
+            for (let i = closedEdges.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [closedEdges[i], closedEdges[j]] = [
+                    closedEdges[j],
+                    closedEdges[i],
+                ];
+            }
+
+            // Modify the maze by opening selected walls
+            let modified = 0;
+            for (let [a, b] of closedEdges) {
+                if (modified >= removeCount) break;
+                if (isCriticalWall(a, b)) continue;
+
+                // Visual highlight
+                a.merah = true;
+                b.merah = true;
+                drawGrid();
+                await sleep(delay * 2);
+
+                removeWall(a, b);
+                modified++;
+
+                setMessage(
+                    `🧱 Removed wall between [${a.i},${a.j}] and [${b.i},${b.j}]`
+                );
+                a.merah = false;
+                b.merah = false;
                 drawGrid();
                 await sleep(delay);
-
-                // generate random number between 0 and 1
-                if (Math.random() < open_probability) {
-                    // open the path between a and b
-                    a.merah = true;
-                    b.merah = true;
-                    removeWall(a, b);
-                    setMessage(
-                        `Hapus wall di cell [${a.i}, ${a.j}] -- [${b.i}, ${b.j}]`
-                    );
-                    drawGrid();
-                    await sleep(delay);
-
-                    a.merah = false;
-                    b.merah = false;
-                }
-                a.sedangDicek = false;
-                b.sedangDicek = false;
             }
+
+            setStatus(`Smart modification done (${modified} walls removed).`);
+            drawGrid();
         }
 
         async function langsung() {
@@ -191,10 +268,10 @@ function generateMaze() {
         }
 
         // STEP 2 :
-        await daftarWall();
-        await acakWall();
+        // await daftarWall();
+        // await acakWall();
 
-        // await langsung();
+        await langsung();
 
         //
         //
@@ -333,6 +410,7 @@ function generateMaze() {
                 // drawGrid();
 
                 // Union by rank
+                ////// INII APPAAAA??????!!!!!
                 if (this.rank[rx] < this.rank[ry]) {
                     this.parent[rx] = ry;
                     setMessage(
@@ -420,6 +498,73 @@ function generateMaze() {
             }
         }
 
+        class DisjointSetLansgung {
+            constructor(n) {
+                this.parent = Array.from({ length: n }, (_, i) => i);
+                this.rank = Array(n).fill(0);
+            }
+
+            // Versi tanpa animasi
+            find(x) {
+                // Path compression
+                if (this.parent[x] !== x) {
+                    this.parent[x] = this.find(this.parent[x]);
+                }
+                return this.parent[x];
+            }
+
+            union(x, y) {
+                const rx = this.find(x);
+                const ry = this.find(y);
+
+                // Jika sudah satu set, tidak perlu diunion
+                if (rx === ry) {
+                    return false;
+                }
+
+                // Union by rank
+                if (this.rank[rx] < this.rank[ry]) {
+                    this.parent[rx] = ry;
+                } else if (this.rank[rx] > this.rank[ry]) {
+                    this.parent[ry] = rx;
+                } else {
+                    this.parent[ry] = rx;
+                    this.rank[rx]++;
+                }
+
+                return true;
+            }
+        }
+
+        ds1 = new DisjointSetLansgung(grid.length);
+
+        async function langsungKruskal() {
+            resetState();
+
+            while (wallIndex < walls.length) {
+                const [aIdx, bIdx] = walls[wallIndex];
+                const a = grid[aIdx];
+                const b = grid[bIdx];
+
+                // Proses koneksi antar cell
+                const connected = ds1.union(aIdx, bIdx);
+
+                if (connected) {
+                    removeWall(a, b);
+                }
+
+                wallIndex++;
+            }
+
+            // Selesai
+            resetState();
+            setStatus("Maze selesai dibuat!");
+            setMessage("Maze complete! Grid available:", window.grid.length);
+            await openPath();
+            // drawGrid();
+            resolve();
+        }
+
         // menyiapkan warna utk algoritma kruskal
         for (let c of grid) {
             c.sedangDicek = false;
@@ -429,6 +574,7 @@ function generateMaze() {
             c.highlight = 1;
         }
 
-        await animateKruskal();
+        // await animateKruskal();
+        await langsungKruskal();
     });
 }

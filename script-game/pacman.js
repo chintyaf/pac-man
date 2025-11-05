@@ -12,7 +12,7 @@ class Pacman {
         this.x = this.i * this.w + this.w / 2;
         this.y = this.j * this.w + this.w / 2;
 
-        this.speed = 2; // Kecepatan gerak (pixel per frame)
+        this.speed = 8; // Kecepatan gerak (pixel per frame)
 
         this.direction = { x: 0, y: 0 };
         this.nextDirection = { x: 0, y: 0 }; // Buffer input
@@ -30,13 +30,12 @@ class Pacman {
     /**
      * Menggambar Pac-Man ke imageDataA menggunakan gbr_titik (via dda_line).
      */
-    draw(imageDataA) {
+    draw() {
         // console.log("Pacman menggambar di:", this.x, this.y);
 
-        const r = 0,
-            g = 0,
+        const r = 255,
+            g = 255,
             b = 0; // Warna kuning
-        const step = 0.02; // smaller = smoother edge
 
         // Tentukan arah hadap mulut
         let facingAngle = Math.atan2(
@@ -46,18 +45,10 @@ class Pacman {
 
         // Hitung sudut awal dan akhir untuk "irisan" mulut
         let startAngle = facingAngle + this.mouthAngle;
-        let endAngle = facingAngle - this.mouthAngle; // +2PI untuk loop
-        // let endAngle = facingAngle - this.mouthAngle + Math.PI * 2; // +2PI untuk loop
+        let endAngle = facingAngle - this.mouthAngle + Math.PI * 2; // +2PI untuk loop
 
         // Gambar lingkaran "penuh" dikurangi irisan mulut
-        for (
-            let theta = endAngle;
-            theta <= startAngle + Math.PI * 2;
-            theta += step
-        ) {
-            // skip area mulut
-            const diff = (theta - facingAngle + Math.PI * 2) % (Math.PI * 2);
-            if (diff < this.mouthAngle * 2 && diff > 0) continue;
+        for (let theta = startAngle; theta < endAngle; theta += 0.04) {
             // Asumsi dda_line() sudah global
             dda_line(
                 imageDataA,
@@ -205,42 +196,44 @@ class Pacman {
     }
 }
 
-function gameLoop() {
-    // 1. PERBARUI LOGIKA
-    pacman.update();
+// var pacman = new Pacman(5, 2, w / 2 - 10);
 
-    // 2. GAMBAR ULANG
-    // Aturan 3: Hapus jejak pakai clearRect
-    ctx.clearRect(0, 0, cnv.width, cnv.height);
+// function gameLoopPacman() {
+//     // 1. PERBARUI LOGIKA
+//     pacman.update();
 
-    // Aturan 1: Ambil buffer KOSONG BARU
-    imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
+//     // 2. GAMBAR ULANG
+//     // Aturan 3: Hapus jejak pakai clearRect
+//     ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-    // Panggil drawGrid() global dari maze.js
-    drawGrid();
+//     // Aturan 1: Ambil buffer KOSONG BARU
+//     imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-    // Gambar Pac-Man di atas labirin
-    pacman.draw(imageDataA);
+//     // Panggil drawGrid() global dari maze.js
+//     drawGrid();
 
-    // 3. RENDER KE LAYAR
-    // Aturan 1: Tampilkan hasil akhir
-    ctx.putImageData(imageDataA, 0, 0);
+//     // Gambar Pac-Man di atas labirin
+//     pacman.draw(imageDataA);
 
-    // Minta frame berikutnya
-    requestAnimationFrame(gameLoop);
-}
+//     // 3. RENDER KE LAYAR
+//     // Aturan 1: Tampilkan hasil akhir
+//     ctx.putImageData(imageDataA, 0, 0);
 
-function startGameLoop() {
-    window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
+//     // Minta frame berikutnya
+//     requestAnimationFrame(gameLoopPacman);
+// }
 
-    pacman = new Pacman(0, 0, w / 2 - 4);
+// function startGameLoop() {
+//     window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
 
-    // 3️⃣ Gunakan document biar selalu nangkep input
-    document.addEventListener("keydown", (e) => {
-        console.log(e);
-        pacman.setDirection(e);
-    });
+//     pacman = new Pacman(0, 0, w / 2 - 4);
 
-    // 4️⃣ Mulai loop (ini akan terus jalan)
-    gameLoop();
-}
+//     // 3️⃣ Gunakan document biar selalu nangkep input
+//     document.addEventListener("keydown", (e) => {
+//         console.log(e);
+//         pacman.setDirection(e);
+//     });
+
+//     // 4️⃣ Mulai loop (ini akan terus jalan)
+//     gameLoop();
+// }

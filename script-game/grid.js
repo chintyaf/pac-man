@@ -104,7 +104,7 @@ class Cell {
             current_line[0],
             current_line[1],
             current_line[2],
-            2
+            4
         );
     }
 }
@@ -156,6 +156,8 @@ async function langsung_grid() {
     drawGrid();
     await new Promise((resolve) => setTimeout(resolve, delay));
 }
+
+window.grid = grid;
 
 function resetState() {
     for (let c of grid) {

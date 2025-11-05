@@ -133,6 +133,7 @@ function tampilkanStartScreen() {
 
 function tampilkanGameOver(score) {
     sedangGameOver = true;
+    // clearCanvas(0, 0, 0);
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
@@ -143,6 +144,7 @@ function tampilkanGameOver(score) {
         b: 220,
     });
     ctx.putImageData(img, 0, 0);
+    console.log("HALLOOOOO");
 }
 
 function tampilkanYouWin(score) {
@@ -249,12 +251,12 @@ function updatePacman() {
     }
 }
 
-document.addEventListener("keydown", function (e) {
-    if (e.key === "ArrowUp") pacmanDir = { x: 0, y: -1 };
-    if (e.key === "ArrowDown") pacmanDir = { x: 0, y: 1 };
-    if (e.key === "ArrowLeft") pacmanDir = { x: -1, y: 0 };
-    if (e.key === "ArrowRight") pacmanDir = { x: 1, y: 0 };
-});
+// document.addEventListener("keydown", function (e) {
+//     if (e.key === "ArrowUp") pacmanDir = { x: 0, y: -1 };
+//     if (e.key === "ArrowDown") pacmanDir = { x: 0, y: 1 };
+//     if (e.key === "ArrowLeft") pacmanDir = { x: -1, y: 0 };
+//     if (e.key === "ArrowRight") pacmanDir = { x: 1, y: 0 };
+// });
 
 function renderScore(img) {
     gambarTeks(img, "SCORE:" + score, 10, 10, 2, { r: 255, g: 200, b: 200 });

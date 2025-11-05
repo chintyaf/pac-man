@@ -14,7 +14,7 @@ cnv.addEventListener("click", function (event) {
     console.log("x: " + x + " y: " + y);
 });
 
-const cell_width = 40;
+const cell_width = 80;
 
 const messageDiv = document.getElementById("message");
 function setStatus(text) {
