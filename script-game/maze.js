@@ -414,6 +414,11 @@ function generateMaze() {
             } else {
                 // Selesai
                 resetState();
+                for (let c of grid) {
+                    c.checked = 0;
+                    c.color = [40, 30, 40];
+                }
+
                 setStatus("Maze selesai dibuat!");
                 setMessage(
                     "Maze complete! Grid available:",

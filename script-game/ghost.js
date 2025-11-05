@@ -226,7 +226,6 @@ class Ghost {
      * TUGAS 3: Deteksi Tabrakan
      */
     checkCollision(pacman) {
-        console.log(this.gridX, pacman.i);
         return this.gridX === pacman.i && this.gridY === pacman.j;
     }
 }

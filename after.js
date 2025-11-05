@@ -20,7 +20,7 @@ async function gameLoop() {
 
     // 1️⃣ Update Pac-Man
     pacman.update();
-
+    pacmanEatDot();
     // 2️⃣ Update Ghost setiap beberapa frame
     if (frameCount % 20 === 0 && typeof ghosts !== "undefined") {
         ghosts.forEach((ghost) => ghost.update?.(pacman));
@@ -32,7 +32,8 @@ async function gameLoop() {
             if (ghost.checkCollision(pacman)) {
                 console.log("💀 COLLISION!");
                 sedangGameOver = true;
-                tampilkanGameOver(10);
+                tampilkanYouWin(getScore());
+                tampilkanGameOver(getScore());
                 console.log("Game over flag:", sedangGameOver);
                 return; // ⛔ stop di sini, jangan lanjut render & request frame
             }
@@ -43,9 +44,18 @@ async function gameLoop() {
     ctx.clearRect(0, 0, cnv.width, cnv.height);
     drawGrid();
     imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
+
     pacman.draw(imageDataA);
     ghosts.forEach((ghost) => ghost.draw(imageDataA));
+    drawDots();
+
     ctx.putImageData(imageDataA, 0, 0);
+
+    if (totalDots == 0) {
+        sedangMenang = true;
+        tampilkanYouWin(getScore());
+        return;
+    }
 
     // 5️⃣ Jalankan frame berikutnya
     requestAnimationFrame(gameLoop);
@@ -54,25 +64,9 @@ async function gameLoop() {
 // =====================
 // START FUNCTION
 // =====================
-function startGameLoop() {
-    window.cellWidth = cellWidth;
-
-    // Buat instance Pac-Man
-    pacman = new Pacman(1, 1, cellWidth / 2 - 4);
-
-    // Daftar kontrol keyboard
-    document.addEventListener("keydown", (e) => pacman.setDirection(e));
-    document.addEventListener("keyup", (e) => pacman.stopDirection(e));
-
-    // Mulai loop
-    gameLoop();
-}
-
 async function startGameAll() {
     window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
     // var pacman = new Pacman(0, 0, w / 2 - 4);
-
-    generateDotsFromMaze();
 
     document.addEventListener("keydown", (e) => {
         pacman.setDirection(e);
@@ -89,29 +83,22 @@ async function startGameAll() {
     pacman = new Pacman(5, 2, w / 2 - 10);
     pacman.draw();
 
+    generateDotsFromMaze();
+    drawDots();
+
     ctx.putImageData(imageDataA, 0, 0);
 
     // 4️⃣ Mulai loop (ini akan terus jalan)
     gameLoop();
-
-    // startGameLoopGhost();
 }
 
-// skip = true;
-initializeGhostsAfterMaze();
+skip = true;
 async function startGame() {
     await buatGrid();
-    // await langsung_grid();
     await generateMaze();
     console.log("Maze done — starting game loop!");
-    // var ghost1 = new Ghost(10);
 
     await startGameAll();
-    // console.log("test");
-    // try {
-    // } catch (err) {
-    //     console.error("Maze generation failed:", err);
-    // }
 }
 
 window.onload = () => {
@@ -119,8 +106,6 @@ window.onload = () => {
     sedangDiStartScreen = true;
     sedangGameOver = false;
     sedangMenang = false;
-    // tampilkanGameOver(10);
-    // tampilkanYouWin(10);
 };
 
 document.addEventListener("keydown", function (e) {
@@ -129,7 +114,6 @@ document.addEventListener("keydown", function (e) {
     }
 
     if (sedangDiStartScreen) {
-        // console.log("hallo", sedangDiStartScreen, sedangGameOver, sedangMenang);
         sedangDiStartScreen = false;
         startGame();
     } else if (sedangGameOver || sedangMenang) {

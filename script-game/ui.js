@@ -206,7 +206,8 @@ function tampilkanYouWin(score) {
 dotMap = [];
 totalDots = 0;
 
-function generateDotsFromMaze(grid, cols, rows) {
+// w = cell_width;
+function generateDotsFromMaze() {
     dotMap = [];
     totalDots = 0;
 
@@ -214,60 +215,127 @@ function generateDotsFromMaze(grid, cols, rows) {
         dotMap[j] = [];
         for (let i = 0; i < cols; i++) {
             const cell = grid[index(i, j)];
+            dotMap[j][i] = [];
 
-            // Only put a dot if the cell is open (no full walls)
-            const hasOpenSpace = cell.walls.some((w) => w === false);
+            const half = cell_width / 2;
+            const offset = cell_width * 0.3; // distance from center
 
-            // True means there is a dot here
-            dotMap[j][i] = hasOpenSpace;
-            if (hasOpenSpace) totalDots++;
+            // Always put a center dot if the cell has any open space
+            const hasOpenSpace = cell.walls.some((wall) => wall === false);
+            console.log(hasOpenSpace);
+            if (hasOpenSpace) {
+                dotMap[j][i].push({ x: i * w + half, y: j * w + half });
+                totalDots++;
+            }
+
+            console.log("cell Width: ", cell_width);
+
+            // Add dots depending on open walls
+            if (!cell.walls[0]) {
+                // top
+                dotMap[j][i].push({
+                    x: i * cell_width + half,
+                    y: j * cell_width + half - offset,
+                });
+                totalDots++;
+            }
+            if (!cell.walls[1]) {
+                // right
+                dotMap[j][i].push({
+                    x: i * cell_width + half + offset,
+                    y: j * cell_width + half,
+                });
+                totalDots++;
+            }
+            if (!cell.walls[2]) {
+                // bottom
+                dotMap[j][i].push({
+                    x: i * cell_width + half,
+                    y: j * cell_width + half + offset,
+                });
+                totalDots++;
+            }
+            if (!cell.walls[3]) {
+                // left
+                dotMap[j][i].push({
+                    x: i * cell_width + half - offset,
+                    y: j * cell_width + half,
+                });
+                totalDots++;
+            }
         }
     }
-    console.log(`Total dots generated: ${totalDots}`);
+
+    console.log(`✅ Dots generated: ${totalDots}`);
 }
 
-function drawDots(img, cellSize = w) {
+function drawDots() {
     for (let r = 0; r < dotMap.length; r++) {
         for (let c = 0; c < dotMap[r].length; c++) {
-            if (!dotMap[r][c]) continue;
+            const dots = dotMap[r][c];
+            if (!dots || dots.length === 0) continue;
 
-            // Calculate pixel position in the center of the cell
-            const cx = c * cellSize + cellSize / 2;
-            const cy = r * cellSize + cellSize / 2;
-
-            // Draw a small yellow dot
-            gbr_titik(img, cx, cy, 255, 255, 100);
+            for (let d of dots) {
+                gbr_titik(imageDataA, d.x, d.y, 255, 255, 180); // yellowish dots
+                gbr_titik(imageDataA, d.x - 1, d.y, 255, 255, 180); // yellowish dots
+                gbr_titik(imageDataA, d.x, d.y - 1, 255, 255, 180); // yellowish dots
+                gbr_titik(imageDataA, d.x + 1, d.y, 255, 255, 180); // yellowish dots
+                gbr_titik(imageDataA, d.x, d.y + 1, 255, 255, 180); // yellowish dots
+                // lingkaran_polar(imageDataA, d.x, d.y, 3, 255, 255, 180);
+                // floodFillStack(
+                //     imageDataA,
+                //     cnv,
+                //     d.x,
+                //     d.y,
+                //     {
+                //         r: flood[0],
+                //         g: flood[1],
+                //         b: flood[2],
+                //     }, // toflood
+                //     { r: 255, g: 255, b: 180 }
+                // );
+            }
+            // console.log(dots);
         }
     }
 }
 
-function tryEatDotAt(row, col) {
-    if (!dotMap[row] || dotMap[row][col] !== true) return;
+const final_score = 0;
+function pacmanEatDot() {
+    const i = pacman.i;
+    const j = pacman.j;
 
-    dotMap[row][col] = false;
-    score += 10;
-    totalDots--;
+    if (!dotMap[j] || !dotMap[j][i]) return;
 
-    if (totalDots === 0) {
-        tampilkanYouWin(score);
+    const dots = dotMap[j][i];
+    if (dots.length === 0) return;
+
+    // Radius jarak makan (toleransi pixel)
+    const eatRadius = pacman.radius * 0.8;
+
+    // Cek setiap dot di sel yang sama
+    for (let k = dots.length - 1; k >= 0; k--) {
+        const d = dots[k];
+        const dx = pacman.x - d.x;
+        const dy = pacman.y - d.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Jika jarak kecil (Pac-Man lewat dot)
+        if (dist < eatRadius) {
+            dots.splice(k, 1); // hapus dot dari sel
+            totalDots--;
+            score++;
+            // Optional: efek suara atau skor bisa ditambah di sini
+            // playEatSound();
+        }
     }
 }
 
-function updatePacman() {
-    // Move pacman
-    pacmanX += pacmanDir.x * pacmanSpeed;
-    pacmanY += pacmanDir.y * pacmanSpeed;
-
-    // Hitung row & col baru
-    let newRow = Math.floor(pacmanY / cellSize);
-    let newCol = Math.floor(pacmanX / cellSize);
-
-    // Jika masuk cell baru makan dot
-    if (newRow !== pacmanRow || newCol !== pacmanCol) {
-        pacmanRow = newRow;
-        pacmanCol = newCol;
-        tryEatDotAt(pacmanRow, pacmanCol);
+function getScore() {
+    if (totalDots == 0) {
+        return score; // menang
     }
+    return score;
 }
 
 // document.addEventListener("keydown", function (e) {
