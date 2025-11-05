@@ -60,3 +60,17 @@ speedSlider.addEventListener("input", () => {
 function sleep(ms = delay) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+let skip = false;
+
+async function animate() {
+    if (skip) return;
+
+    drawGrid();
+    await sleep(delay);
+}
+
+function skipAnimation() {
+    skip = true;
+    animate();
+}

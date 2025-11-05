@@ -1,21 +1,14 @@
-// STEP 2  : Shuffle Walls
-// STEP 3  : Algorithm Step Loop (Kruskal)
-// STEP 4  : Maze Completed
 // =====================
-// GAME LOOP UTAMA
+// VARIABLES
 // =====================
-
 let gameRunning = false;
 sedangGameOver = false;
+sedangMenang = false;
+sedangDiStartScreen = false;
+frameCount = 0;
 
-// Ambil buffer awal
-// Grid dari maze.js
 const gridData = getGridFromMaze();
-// const grid = window.grid;
-
-// Frame counter
-// let frameCount = 0;
-let pacman = new Pacman(1, 1, cellWidth / 2 - 4);
+let pacman = new Pacman(1, 1, cell_width / 2 - 4);
 
 // =====================
 // GAME LOOP
@@ -79,6 +72,8 @@ async function startGameAll() {
     window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
     // var pacman = new Pacman(0, 0, w / 2 - 4);
 
+    generateDotsFromMaze();
+
     document.addEventListener("keydown", (e) => {
         pacman.setDirection(e);
     });
@@ -102,10 +97,11 @@ async function startGameAll() {
     // startGameLoopGhost();
 }
 
+// skip = true;
 initializeGhostsAfterMaze();
 async function startGame() {
-    // await buatGrid();
-    await langsung_grid();
+    await buatGrid();
+    // await langsung_grid();
     await generateMaze();
     console.log("Maze done — starting game loop!");
     // var ghost1 = new Ghost(10);

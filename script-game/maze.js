@@ -2,24 +2,20 @@ function generateMaze() {
     return new Promise(async (resolve) => {
         // STEP 2  : Shuffle Walls
         let walls = [];
-        let visual_walls = []; // visualisasi
         async function daftarWall() {
-            // setMessage("Daftarkan wall");
+            console.log("daftar");
             var counter = 1;
+
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
                     setStatus(`Input Wall #${counter}`);
                     let a = index(i, j);
-
                     grid[a].color = [100 + +j * 4, 70, 80 + i * 5];
-                    // 40, 30, 40
-                    // grid[a].color = [220 - j */ 4, 96, 245 + i * 3];
-                    // grid[a].line_color = [0, 0, 0];
 
+                    // ---- VERTICAL WALL ----
                     if (i < cols - 1) {
                         let b = index(i + 1, j);
                         walls.push([a, b, "V"]);
-                        visual_walls.push(grid[a]);
 
                         grid[a].sedangDicek = true;
                         grid[b].sedangDicek = true;
@@ -30,17 +26,16 @@ function generateMaze() {
                         );
 
                         counter += 1;
-                        drawGrid();
-                        await sleep();
+                        await animate();
 
                         grid[a].sedangDicek = false;
                         grid[b].sedangDicek = false;
                     }
 
+                    // ---- HORIZONTAL WALL ----
                     if (j < rows - 1) {
                         let b = index(i, j + 1);
                         walls.push([a, b, "H"]);
-                        visual_walls.push(grid[a]);
 
                         grid[a].sedangDicek = true;
                         grid[b].sedangDicek = true;
@@ -48,15 +43,16 @@ function generateMaze() {
                             `Cell [${i}, ${j}]  --> Cell [${i}, ${j + 1}]
                             (Horizontal wall)`
                         );
+
                         counter += 1;
-                        drawGrid();
-                        await sleep();
+                        await animate();
 
                         grid[a].sedangDicek = false;
                         grid[b].sedangDicek = false;
                     }
                 }
             }
+            skip = false;
         }
 
         // Shuffle Walls
@@ -65,7 +61,6 @@ function generateMaze() {
             for (let i = 0; i <= walls.length - 1; i++) {
                 let j = Math.floor(Math.random() * (i + 1));
                 setMessage(`Switch wall #${i} <--> #${j}`);
-                console.log(i, j);
 
                 // wall 1  = i
                 w1_a = grid[walls[i][0]]; // a
@@ -75,10 +70,6 @@ function generateMaze() {
                 w2_b = grid[walls[j][1]]; // b
 
                 [walls[i], walls[j]] = [walls[j], walls[i]];
-                // [visual_walls[i].color, visual_walls[j].color] = [
-                //     visual_walls[j].color,
-                //     visual_walls[i].color,
-                // ];
 
                 [w1_a.color, w1_b.color, w2_a.color, w1_b.color] = [
                     w2_a.color,
@@ -87,83 +78,30 @@ function generateMaze() {
                     w1_b.color,
                 ];
 
-                // visual_walls[i].sedangDicek = true;
-                // visual_walls[j].sedangDicek = true;
                 w1_a.sedangDicek = true;
                 w1_b.sedangDicek = true;
                 w2_a.sedangDicek = true;
                 w2_b.sedangDicek = true;
 
-                drawGrid();
-                await sleep();
+                await animate();
+
                 w1_a.sedangDicek = false;
                 w1_b.sedangDicek = false;
                 w2_a.sedangDicek = false;
                 w2_b.sedangDicek = false;
             }
-        }
-
-        function removeWall(a, b) {
-            let dx = a.i - b.i;
-            let dy = a.j - b.j;
-            if (dx === 1) {
-                a.walls[3] = false;
-                b.walls[1] = false;
-            } else if (dx === -1) {
-                a.walls[1] = false;
-                b.walls[3] = false;
-            }
-            if (dy === 1) {
-                a.walls[0] = false;
-                b.walls[2] = false;
-            } else if (dy === -1) {
-                a.walls[2] = false;
-                b.walls[0] = false;
+            if (skip) {
+                skip = false;
+                await animate();
             }
         }
-
-        const open_probability = 0.3; // 30% chance to open a wall
-
-        // async function openPath() {
-        //     for (let [aIdx, bIdx] of walls) {
-        //         const a = grid[aIdx];
-        //         const b = grid[bIdx];
-
-        //         // a.sedangDicek = true;
-        //         // b.sedangDicek = true;
-        //         // drawGrid();
-        //         // await sleep(delay);
-
-        //         // generate random number between 0 and 1
-        //         if (Math.random() < open_probability) {
-        //             console.log(a, b);
-        //             // open the path between a and b
-        //             a.merah = true;
-        //             b.merah = true;
-        //             removeWall(a, b);
-        //             setMessage(
-        //                 `Hapus wall di cell [${a.i}, ${a.j}] -- [${b.i}, ${b.j}]`
-        //             );
-        //             drawGrid();
-        //             await sleep(delay * 2);
-
-        //             a.merah = false;
-        //             b.merah = false;
-        //         }
-        //         // a.sedangDicek = false;
-        //         // b.sedangDicek = false;
-        //     }
-        //     drawGrid();
-        // }
 
         // ==========================
-        // SMART MAZE MODIFIER
+        // Buka Path
         // ==========================
         async function openPath(removeCount = 10) {
             setStatus("Smart Maze Modification");
-            setMessage(
-                `🧠 Modifying maze intelligently (${removeCount} adjustments)`
-            );
+            setMessage(`Maze (${removeCount} adjustments)`);
 
             // Helper to check if removing a wall disconnects regions too much
             function isCriticalWall(a, b) {
@@ -212,76 +150,65 @@ function generateMaze() {
                 // Visual highlight
                 a.merah = true;
                 b.merah = true;
-                drawGrid();
-                await sleep(delay * 2);
+                await animate();
 
                 removeWall(a, b);
                 modified++;
 
                 setMessage(
-                    `🧱 Removed wall between [${a.i},${a.j}] and [${b.i},${b.j}]`
+                    `Removed wall between [${a.i},${a.j}] and [${b.i},${b.j}]`
                 );
                 a.merah = false;
                 b.merah = false;
-                drawGrid();
-                await sleep(delay);
+                await animate();
             }
 
             setStatus(`Smart modification done (${modified} walls removed).`);
             drawGrid();
         }
 
-        async function langsung() {
-            setMessage("Daftarkan wall");
-            for (let i = 0; i < cols; i++) {
-                for (let j = 0; j < rows; j++) {
-                    let a = index(i, j);
+        // async function langsung() {
+        //     setMessage("Daftarkan wall");
+        //     for (let i = 0; i < cols; i++) {
+        //         for (let j = 0; j < rows; j++) {
+        //             let a = index(i, j);
 
-                    let cell = grid[index(i, j)];
-                    cell.color = [220 - j * 4, 96, 245 + i * 3];
+        //             let cell = grid[index(i, j)];
+        //             cell.color = [220 - j * 4, 96, 245 + i * 3];
 
-                    if (i < cols - 1) {
-                        let b = index(i + 1, j);
-                        walls.push([a, b, "V"]);
-                        visual_walls.push(cell);
-                        cell.highlight = 1; // exampl
-                    }
+        //             if (i < cols - 1) {
+        //                 let b = index(i + 1, j);
+        //                 walls.push([a, b, "V"]);
+        //                 visual_walls.push(cell);
+        //                 cell.highlight = 1; // exampl
+        //             }
 
-                    if (j < rows - 1) {
-                        let b = index(i, j + 1);
-                        walls.push([a, b, "H"]);
-                        cell.highlight = 1;
-                        visual_walls.push(cell);
-                    }
-                }
-            }
-            setMessage("Acak wall");
-            for (let i = walls.length - 1; i > 0; i--) {
-                let j = Math.floor(Math.random() * (i + 1));
-                [walls[i], walls[j]] = [walls[j], walls[i]];
-                [visual_walls[i].color, visual_walls[j].color] = [
-                    visual_walls[j].color,
-                    visual_walls[i].color,
-                ];
-                drawGrid();
-            }
-        }
+        //             if (j < rows - 1) {
+        //                 let b = index(i, j + 1);
+        //                 walls.push([a, b, "H"]);
+        //                 cell.highlight = 1;
+        //                 visual_walls.push(cell);
+        //             }
+        //         }
+        //     }
+        //     setMessage("Acak wall");
+        //     for (let i = walls.length - 1; i > 0; i--) {
+        //         let j = Math.floor(Math.random() * (i + 1));
+        //         [walls[i], walls[j]] = [walls[j], walls[i]];
+        //         [visual_walls[i].color, visual_walls[j].color] = [
+        //             visual_walls[j].color,
+        //             visual_walls[i].color,
+        //         ];
+        //         drawGrid();
+        //     }
+        // }
 
         // STEP 2 :
-        // await daftarWall();
-        // await acakWall();
+        await daftarWall();
+        await acakWall();
 
-        await langsung();
+        // await langsung();
 
-        //
-        //
-        //
-        //
-        //
-        //
-        //
-        //
-        //
         //
         class DisjointSet {
             constructor(n) {
@@ -289,10 +216,10 @@ function generateMaze() {
                 this.rank = Array(n).fill(0);
             }
 
-            async animate() {
-                drawGrid();
-                await sleep(delay / 0.5);
-            }
+            // async animate() {
+            //     drawGrid();
+            //     await sleep(delay / 0.5);
+            // }
 
             // Mencari parent/root dengan visualisasi path rekursif
             async find(x, pathFromStart = []) {
@@ -303,7 +230,7 @@ function generateMaze() {
 
                 const pathStr = pathFromStart.join(" → ");
                 setMessage(`🔍 Path: ${pathStr}`);
-                await this.animate();
+                await animate();
 
                 // Jika bukan parent, lanjut ke parent-nya
                 if (this.parent[x] !== x) {
@@ -335,7 +262,7 @@ function generateMaze() {
                 cell.sedangDicek = false;
                 cell.adalahParent = true;
                 setMessage(`👑 ROOT! Path lengkap: ${pathStr}`);
-                await this.animate();
+                await animate();
 
                 return this.parent[x];
             }
@@ -393,11 +320,13 @@ function generateMaze() {
                 // Jika sudah dalam satu set
                 if (rx === ry) {
                     // grid[rx].unionDecision = true;
-                    drawGrid();
                     setMessage(
                         `Node ${x} dan ${y} sudah dalam satu set (root: ${rx})`
                     );
-                    await sleep(delay * 15);
+
+                    await animate();
+                    // drawGrid();
+                    // await sleep(delay * 15);
 
                     return false;
                 }
@@ -433,7 +362,7 @@ function generateMaze() {
                     );
                 }
 
-                await this.animate();
+                await animate();
                 return true;
             }
         }
@@ -458,8 +387,7 @@ function generateMaze() {
                 b.sedangDicek = true;
                 setStatus(`Memproses wall #${wallIndex}`);
                 setMessage(`Cell [${a.i}, ${a.j}] - [${b.i}, ${b.j}]`);
-                drawGrid();
-                await sleep(delay * 3);
+                await animate();
 
                 const connected = await ds.union(aIdx, bIdx);
                 if (connected) {
@@ -476,12 +404,12 @@ function generateMaze() {
 
                 a.checked += 1;
                 b.checked += 1;
-                drawGrid();
-                await sleep(delay);
+                await animate();
             }
 
             if (wallIndex < walls.length) {
-                await sleep(delay);
+                await animate();
+                // await sleep(delay);
                 requestAnimationFrame(animateKruskal);
             } else {
                 // Selesai
@@ -493,76 +421,9 @@ function generateMaze() {
                 );
                 drawGrid();
                 await openPath();
-
+                skip = false;
                 resolve();
             }
-        }
-
-        class DisjointSetLansgung {
-            constructor(n) {
-                this.parent = Array.from({ length: n }, (_, i) => i);
-                this.rank = Array(n).fill(0);
-            }
-
-            // Versi tanpa animasi
-            find(x) {
-                // Path compression
-                if (this.parent[x] !== x) {
-                    this.parent[x] = this.find(this.parent[x]);
-                }
-                return this.parent[x];
-            }
-
-            union(x, y) {
-                const rx = this.find(x);
-                const ry = this.find(y);
-
-                // Jika sudah satu set, tidak perlu diunion
-                if (rx === ry) {
-                    return false;
-                }
-
-                // Union by rank
-                if (this.rank[rx] < this.rank[ry]) {
-                    this.parent[rx] = ry;
-                } else if (this.rank[rx] > this.rank[ry]) {
-                    this.parent[ry] = rx;
-                } else {
-                    this.parent[ry] = rx;
-                    this.rank[rx]++;
-                }
-
-                return true;
-            }
-        }
-
-        ds1 = new DisjointSetLansgung(grid.length);
-
-        async function langsungKruskal() {
-            resetState();
-
-            while (wallIndex < walls.length) {
-                const [aIdx, bIdx] = walls[wallIndex];
-                const a = grid[aIdx];
-                const b = grid[bIdx];
-
-                // Proses koneksi antar cell
-                const connected = ds1.union(aIdx, bIdx);
-
-                if (connected) {
-                    removeWall(a, b);
-                }
-
-                wallIndex++;
-            }
-
-            // Selesai
-            resetState();
-            setStatus("Maze selesai dibuat!");
-            setMessage("Maze complete! Grid available:", window.grid.length);
-            await openPath();
-            // drawGrid();
-            resolve();
         }
 
         // menyiapkan warna utk algoritma kruskal
@@ -574,7 +435,7 @@ function generateMaze() {
             c.highlight = 1;
         }
 
-        // await animateKruskal();
-        await langsungKruskal();
+        await animateKruskal();
+        // await langsungKruskal();
     });
 }

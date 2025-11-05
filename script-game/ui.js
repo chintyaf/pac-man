@@ -133,8 +133,9 @@ function tampilkanStartScreen() {
 
 function tampilkanGameOver(score) {
     sedangGameOver = true;
-    // clearCanvas(0, 0, 0);
     ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+    clearCanvas(0, 0, 0);
     let img = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
     gambarTeks(img, "GAME OVER", mid_x - 180, 160, 7, { r: 220, g: 10, b: 40 });
@@ -143,8 +144,8 @@ function tampilkanGameOver(score) {
         g: 220,
         b: 220,
     });
-    ctx.putImageData(img, 0, 0);
     console.log("HALLOOOOO");
+    ctx.putImageData(img, 0, 0);
 }
 
 function tampilkanYouWin(score) {
@@ -198,26 +199,44 @@ function tampilkanYouWin(score) {
 //     }
 // }
 
-function generateDotsFromMaze(grid) {
+// ======================
+// DOT GENERATION + DRAW
+// ======================
+
+dotMap = [];
+totalDots = 0;
+
+function generateDotsFromMaze(grid, cols, rows) {
     dotMap = [];
     totalDots = 0;
 
-    for (let r = 0; r < grid.length; r++) {
-        dotMap[r] = [];
-        for (let c = 0; c < grid[r].length; c++) {
-            dotMap[r][c] = grid[r][c] === 1;
-            if (dotMap[r][c]) totalDots++;
+    for (let j = 0; j < rows; j++) {
+        dotMap[j] = [];
+        for (let i = 0; i < cols; i++) {
+            const cell = grid[index(i, j)];
+
+            // Only put a dot if the cell is open (no full walls)
+            const hasOpenSpace = cell.walls.some((w) => w === false);
+
+            // True means there is a dot here
+            dotMap[j][i] = hasOpenSpace;
+            if (hasOpenSpace) totalDots++;
         }
     }
+    console.log(`Total dots generated: ${totalDots}`);
 }
 
-function drawDots(img) {
+function drawDots(img, cellSize = w) {
     for (let r = 0; r < dotMap.length; r++) {
         for (let c = 0; c < dotMap[r].length; c++) {
             if (!dotMap[r][c]) continue;
-            let cx = c * cellSize + cellSize / 2;
-            let cy = r * cellSize + cellSize / 2;
-            gbr_titik(img, cx, cy, 255, 255, 200);
+
+            // Calculate pixel position in the center of the cell
+            const cx = c * cellSize + cellSize / 2;
+            const cy = r * cellSize + cellSize / 2;
+
+            // Draw a small yellow dot
+            gbr_titik(img, cx, cy, 255, 255, 100);
         }
     }
 }

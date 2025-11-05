@@ -133,6 +133,25 @@ function drawGrid() {
     ctx.putImageData(imageDataA, 0, 0);
 }
 
+function removeWall(a, b) {
+    let dx = a.i - b.i;
+    let dy = a.j - b.j;
+    if (dx === 1) {
+        a.walls[3] = false;
+        b.walls[1] = false;
+    } else if (dx === -1) {
+        a.walls[1] = false;
+        b.walls[3] = false;
+    }
+    if (dy === 1) {
+        a.walls[0] = false;
+        b.walls[2] = false;
+    } else if (dy === -1) {
+        a.walls[2] = false;
+        b.walls[0] = false;
+    }
+}
+
 // STEP 1  : Initialization GRID
 async function buatGrid() {
     setStatus("Initialize Gird");
@@ -141,10 +160,11 @@ async function buatGrid() {
         for (let i = 0; i < cols; i++) {
             grid.push(new Cell(i, j));
             setMessage(`Menambahkan objek Cell(${i}, ${j})`);
-            drawGrid();
-            await new Promise((resolve) => setTimeout(resolve, delay));
+
+            await animate();
         }
     }
+    skip = false;
 }
 
 async function langsung_grid() {
