@@ -20,7 +20,8 @@ class Ghost {
     draw() {
         const radius = this.tileSize / 2 - 15;
         const headY = this.pixelY - radius / 3;
-        // Gambar kepala
+
+        // === Outline Kepala ===
         lingkaran_polar(
             imageDataA,
             this.pixelX,
@@ -31,7 +32,7 @@ class Ghost {
             this.color.b
         );
 
-        // Gambar badan
+        // === Outline Badan ===
         const bodyShape = [
             { x: -radius, y: -radius / 3 },
             { x: -radius, y: radius },
@@ -41,42 +42,77 @@ class Ghost {
             { x: radius, y: radius },
             { x: radius, y: -radius / 3 },
         ];
-
         const T = { x: this.pixelX, y: this.pixelY };
         const translatedShape = translasi_array(bodyShape, T);
-        polygon(
-            imageDataA,
-            translatedShape,
-            this.color.r,
-            this.color.g,
-            this.color.b
-        );
+        polygon(imageDataA, translatedShape, this.color.r, this.color.g, this.color.b);
 
-        // Gambar mata
+        // === Mata ===
         const eyeRadius = radius / 5;
         const eyeOffsetX = radius / 2.5;
         const eyeOffsetY = -(radius / 3);
+        lingkaran_polar(imageDataA, this.pixelX - eyeOffsetX, this.pixelY + eyeOffsetY, eyeRadius, 255, 255, 255);
+        lingkaran_polar(imageDataA, this.pixelX + eyeOffsetX, this.pixelY + eyeOffsetY, eyeRadius, 255, 255, 255);
 
-        lingkaran_polar(
-            imageDataA,
-            this.pixelX - eyeOffsetX,
-            this.pixelY + eyeOffsetY,
-            eyeRadius,
-            255,
-            255,
-            255
-        );
-        lingkaran_polar(
-            imageDataA,
-            this.pixelX + eyeOffsetX,
-            this.pixelY + eyeOffsetY,
-            eyeRadius,
-            255,
-            255,
-            255
-        );
+        // === Fill otomatis 3 bagian ===
+        const fillColor = { r: this.color.r, g: this.color.g, b: this.color.b };
+
+        function getColorAt(x, y) {
+            const i = (Math.floor(y) * imageDataA.width + Math.floor(x)) * 4;
+            return {
+                r: imageDataA.data[i],
+                g: imageDataA.data[i + 1],
+                b: imageDataA.data[i + 2],
+            };
+        }
+
+        function colorsMatch(c1, c2, tol = 2) {
+            return (
+                Math.abs(c1.r - c2.r) <= tol &&
+                Math.abs(c1.g - c2.g) <= tol &&
+                Math.abs(c1.b - c2.b) <= tol
+            );
+        }
+
+        function safeFill(x, y) {
+            const target = getColorAt(x, y);
+            const start = { x: Math.floor(x), y: Math.floor(y) };
+            const stack = [start];
+            while (stack.length > 0) {
+                const { x, y } = stack.pop();
+                if (x < 0 || y < 0 || x >= cnv.width || y >= cnv.height) continue;
+                const i = (y * imageDataA.width + x) * 4;
+                const c = {
+                    r: imageDataA.data[i],
+                    g: imageDataA.data[i + 1],
+                    b: imageDataA.data[i + 2],
+                };
+                if (colorsMatch(c, target)) {
+                    imageDataA.data[i] = fillColor.r;
+                    imageDataA.data[i + 1] = fillColor.g;
+                    imageDataA.data[i + 2] = fillColor.b;
+                    imageDataA.data[i + 3] = 255;
+                    stack.push({ x: x + 1, y });
+                    stack.push({ x: x - 1, y });
+                    stack.push({ x, y: y + 1 });
+                    stack.push({ x, y: y - 1 });
+                }
+            }
+        }
+
+        // tiga titik isi (kepala, badan, kaki)
+        safeFill(this.pixelX, this.pixelY - radius / 3); // kepala
+        safeFill(this.pixelX, this.pixelY + radius / 3); // badan tengah
+        safeFill(this.pixelX, this.pixelY + radius - 5); // kaki
+
         ctx.putImageData(imageDataA, 0, 0);
     }
+
+
+
+
+
+
+
 
     /**
      * TUGAS 2: Logika Pergerakan Ghost
