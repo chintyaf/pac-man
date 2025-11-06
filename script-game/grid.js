@@ -110,8 +110,8 @@ class Cell {
 }
 
 window.grid = [];
-const grid = window.grid;
-const w = cell_width;
+var grid = window.grid;
+var w = cell_width;
 window.cellWidth = w;
 
 const cols = Math.floor(cnv.width / w);

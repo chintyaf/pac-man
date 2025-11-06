@@ -8,8 +8,8 @@ sedangDiStartScreen = false;
 frameCount = 0;
 
 const gridData = getGridFromMaze();
-let pacman = new Pacman(1, 1, cell_width / 2 - 4);
-
+const fps = 60;
+const frameDelay = 1000 / fps; // 33.33 ms per frame
 // =====================
 // GAME LOOP
 // =====================
@@ -30,11 +30,10 @@ async function gameLoop() {
     if (typeof ghosts !== "undefined") {
         for (const ghost of ghosts) {
             if (ghost.checkCollision(pacman)) {
-                console.log("💀 COLLISION!");
+                console.log("COLLISION!");
                 sedangGameOver = true;
                 tampilkanYouWin(getScore());
                 tampilkanGameOver(getScore());
-                console.log("Game over flag:", sedangGameOver);
                 return; // ⛔ stop di sini, jangan lanjut render & request frame
             }
         }
@@ -58,7 +57,10 @@ async function gameLoop() {
     }
 
     // 5️⃣ Jalankan frame berikutnya
-    requestAnimationFrame(gameLoop);
+    // requestAnimationFrame(gameLoop);
+    setTimeout(() => {
+        requestAnimationFrame(gameLoop);
+    }, frameDelay);
 }
 
 // =====================
@@ -66,8 +68,8 @@ async function gameLoop() {
 // =====================
 async function startGameAll() {
     window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
-    // var pacman = new Pacman(0, 0, w / 2 - 4);
-
+    generateDotsFromMaze();
+    drawDots();
     document.addEventListener("keydown", (e) => {
         pacman.setDirection(e);
     });
@@ -77,14 +79,10 @@ async function startGameAll() {
     // Draw ghosts
     ghosts.forEach((ghost) => {
         ghost.draw();
-        console.log(ghost);
     });
 
     pacman = new Pacman(5, 2, w / 2 - 10);
     pacman.draw();
-
-    generateDotsFromMaze();
-    drawDots();
 
     ctx.putImageData(imageDataA, 0, 0);
 
@@ -92,13 +90,43 @@ async function startGameAll() {
     gameLoop();
 }
 
-skip = true;
+// skip = true;
 async function startGame() {
+    clearAllData();
+
     await buatGrid();
     await generateMaze();
+    messageDiv.style.display = "none";
+    score_cnv.style.opacity = 1;
+
+    tampilkanScore();
+
     console.log("Maze done — starting game loop!");
 
     await startGameAll();
+}
+
+function clearAllData() {
+    // Reset global variables
+    grid = [];
+    walls = [];
+    dots = [];
+    ghosts = [];
+
+    // Reset score and states
+    score = 0;
+    totalDots = 0;
+    sedangMenang = false;
+    sedangGameOver = false;
+    gameRunning = false;
+
+    // Optional: clear canvas visually
+    clearCanvas(0, 0, 0);
+    score_cnv.style.opacity = 0;
+    setStatus();
+    setMessage();
+
+    console.log("All data cleared!");
 }
 
 window.onload = () => {

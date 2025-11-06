@@ -100,9 +100,10 @@ function generateMaze() {
         // Buka Path
         // ==========================
         async function openPath(removeCount = 10) {
-            setStatus("Smart Maze Modification");
+            setStatus("Maze Modification");
             setMessage(`Maze (${removeCount} adjustments)`);
 
+            animate();
             // Helper to check if removing a wall disconnects regions too much
             function isCriticalWall(a, b) {
                 // Simple heuristic: avoid removing if cells have < 2 open walls
@@ -163,7 +164,7 @@ function generateMaze() {
                 await animate();
             }
 
-            setStatus(`Smart modification done (${modified} walls removed).`);
+            // setStatus(`Smart modification done (${modified} walls removed).`);
             drawGrid();
         }
 

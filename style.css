@@ -27,12 +27,6 @@ p {
     justify-content: center;
 }
 
-.frame-canvas {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
 .message {
     /* width: 801px; */
     min-width: 401px;
@@ -57,10 +51,26 @@ p {
     padding-bottom: 10px;
 }
 
-#canvas {
-    margin-top: 20px;
+.frame-canvas {
+    /* margin-top: 20px; */
 
+    width: 881px;
+    /* width: 100%; */
+    /* display: flex; */
+    /* justify-content: center; */
+    margin-top: 20px;
+}
+
+.frame-border {
     border: 3px solid rgba(213, 54, 115, 1);
+}
+
+#score-canvas {
+    width: 100%;
+}
+
+#canvas {
+    /* border: 3px solid rgb(86, 213, 54); */
 }
 
 #speed {

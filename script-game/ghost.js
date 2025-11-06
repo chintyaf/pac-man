@@ -44,14 +44,36 @@ class Ghost {
         ];
         const T = { x: this.pixelX, y: this.pixelY };
         const translatedShape = translasi_array(bodyShape, T);
-        polygon(imageDataA, translatedShape, this.color.r, this.color.g, this.color.b);
+        polygon(
+            imageDataA,
+            translatedShape,
+            this.color.r,
+            this.color.g,
+            this.color.b
+        );
 
         // === Mata ===
         const eyeRadius = radius / 5;
         const eyeOffsetX = radius / 2.5;
         const eyeOffsetY = -(radius / 3);
-        lingkaran_polar(imageDataA, this.pixelX - eyeOffsetX, this.pixelY + eyeOffsetY, eyeRadius, 255, 255, 255);
-        lingkaran_polar(imageDataA, this.pixelX + eyeOffsetX, this.pixelY + eyeOffsetY, eyeRadius, 255, 255, 255);
+        lingkaran_polar(
+            imageDataA,
+            this.pixelX - eyeOffsetX,
+            this.pixelY + eyeOffsetY,
+            eyeRadius,
+            255,
+            255,
+            255
+        );
+        lingkaran_polar(
+            imageDataA,
+            this.pixelX + eyeOffsetX,
+            this.pixelY + eyeOffsetY,
+            eyeRadius,
+            255,
+            255,
+            255
+        );
 
         // === Fill otomatis 3 bagian ===
         const fillColor = { r: this.color.r, g: this.color.g, b: this.color.b };
@@ -79,7 +101,8 @@ class Ghost {
             const stack = [start];
             while (stack.length > 0) {
                 const { x, y } = stack.pop();
-                if (x < 0 || y < 0 || x >= cnv.width || y >= cnv.height) continue;
+                if (x < 0 || y < 0 || x >= cnv.width || y >= cnv.height)
+                    continue;
                 const i = (y * imageDataA.width + x) * 4;
                 const c = {
                     r: imageDataA.data[i],
@@ -106,13 +129,6 @@ class Ghost {
 
         ctx.putImageData(imageDataA, 0, 0);
     }
-
-
-
-
-
-
-
 
     /**
      * TUGAS 2: Logika Pergerakan Ghost

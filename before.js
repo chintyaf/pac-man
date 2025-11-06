@@ -1,8 +1,13 @@
 var cnv, ctx, imageDataA;
+var cnv2, ctx2, imageData2;
 
 cnv = document.querySelector("#canvas");
 ctx = cnv.getContext("2d");
 imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
+
+cnv2 = document.querySelector("#score-canvas");
+ctx2 = cnv2.getContext("2d");
+imageData2 = ctx2.getImageData(0, 0, cnv2.width, cnv2.height);
 
 const mid_x = cnv.width / 2;
 const mid_y = cnv.height / 2;
@@ -11,7 +16,7 @@ cnv.addEventListener("click", function (event) {
     var rect = cnv.getBoundingClientRect();
     var x = event.clientX - rect.left;
     var y = event.clientY - rect.top;
-    console.log("x: " + x + " y: " + y);
+    // console.log("x: " + x + " y:f " + y);
 });
 
 const cell_width = 80;
@@ -19,7 +24,7 @@ const cell_width = 80;
 const messageDiv = document.getElementById("message");
 function setStatus(text) {
     messageDiv.style.display = "block";
-    if (messageDiv) {
+    if (text) {
         const headerEl = messageDiv.querySelector(".status-header");
 
         if (headerEl) headerEl.textContent = text;
@@ -27,7 +32,8 @@ function setStatus(text) {
 }
 
 function setMessage(text) {
-    if (messageDiv) {
+    console.log("text", text);
+    if (text) {
         const msgEl = messageDiv.querySelector(".status-msg");
 
         if (msgEl) msgEl.textContent = text;
@@ -54,7 +60,6 @@ let delay = getDelayFromSpeed(speedSlider.value);
 speedSlider.addEventListener("input", () => {
     speedValue.textContent = speedSlider.value;
     delay = getDelayFromSpeed(speedSlider.value);
-    console.log(delay);
 });
 
 function sleep(ms = delay) {

@@ -50,6 +50,7 @@ const pixelFont = {
     "-": ["00000", "00000", "11111", "00000", "00000", "00000"],
     "!": ["00100", "00100", "00100", "00100", "00000", "00100"],
 
+    // 0: ["01110", "10011", "10101", "11001", "10001", "01110"],
     0: ["01110", "10011", "10101", "11001", "10001", "01110"],
     1: ["00100", "01100", "00100", "00100", "00100", "01110"],
     2: ["01110", "10001", "00010", "00100", "01000", "11111"],
@@ -325,6 +326,7 @@ function pacmanEatDot() {
             dots.splice(k, 1); // hapus dot dari sel
             totalDots--;
             score++;
+            tampilkanScore();
             // Optional: efek suara atau skor bisa ditambah di sini
             // playEatSound();
         }
@@ -338,15 +340,22 @@ function getScore() {
     return score;
 }
 
-// document.addEventListener("keydown", function (e) {
-//     if (e.key === "ArrowUp") pacmanDir = { x: 0, y: -1 };
-//     if (e.key === "ArrowDown") pacmanDir = { x: 0, y: 1 };
-//     if (e.key === "ArrowLeft") pacmanDir = { x: -1, y: 0 };
-//     if (e.key === "ArrowRight") pacmanDir = { x: 1, y: 0 };
-// });
+var score_cnv = document.getElementById("score-canvas");
+function tampilkanScore() {
+    // clearCanvas(0, 0, 0);
+    ctx2.clearRect(0, 0, score_cnv.width, score_cnv.height);
+    imageData2 = ctx2.getImageData(0, 0, score_cnv.width, score_cnv.height);
+
+    renderScore(imageData2);
+    ctx2.putImageData(imageData2, 0, 0);
+}
 
 function renderScore(img) {
-    gambarTeks(img, "SCORE:" + score, 10, 10, 2, { r: 255, g: 200, b: 200 });
+    gambarTeks(img, "SCORE:" + String(score), 10, 10, 2, {
+        r: 255,
+        g: 120,
+        b: 180,
+    });
 }
 
 function renderFrame() {
