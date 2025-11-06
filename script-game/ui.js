@@ -50,7 +50,6 @@ const pixelFont = {
     "-": ["00000", "00000", "11111", "00000", "00000", "00000"],
     "!": ["00100", "00100", "00100", "00100", "00000", "00100"],
 
-    // 0: ["01110", "10011", "10101", "11001", "10001", "01110"],
     0: ["01110", "10011", "10101", "11001", "10001", "01110"],
     1: ["00100", "01100", "00100", "00100", "00100", "01110"],
     2: ["01110", "10001", "00010", "00100", "01000", "11111"],
@@ -67,6 +66,14 @@ function getCharPattern(ch) {
     return pixelFont[ch] || pixelFont[" "];
 }
 
+// function gbr_titik(img, x, y, r, g, b) {
+//     if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
+//     let i = 4 * (Math.floor(x) + Math.floor(y) * img.width);
+//     img.data[i] = r;
+//     img.data[i + 1] = g;
+//     img.data[i + 2] = b;
+//     img.data[i + 3] = 255;
+// }
 
 function gambarHuruf(img, ch, x, y, scale, color) {
     let pat = getCharPattern(ch);
@@ -137,6 +144,7 @@ function tampilkanGameOver(score) {
         g: 220,
         b: 220,
     });
+    console.log("HALLOOOOO");
     ctx.putImageData(img, 0, 0);
 }
 
@@ -158,7 +166,38 @@ function tampilkanYouWin(score) {
     ctx.putImageData(img, 0, 0);
 }
 
+// const mazeGrid = [
+//     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+//     [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+//     [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// ];
 
+// function drawMaze(img) {
+//     for (let r = 0; r < mazeGrid.length; r++) {
+//         for (let c = 0; c < mazeGrid[r].length; c++) {
+//             let color =
+//                 mazeGrid[r][c] === 0
+//                     ? { r: 30, g: 70, b: 150 }
+//                     : { r: 0, g: 0, b: 0 };
+//             for (let y = 0; y < cellSize; y++) {
+//                 for (let x = 0; x < cellSize; x++) {
+//                     gbr_titik(
+//                         img,
+//                         c * cellSize + x,
+//                         r * cellSize + y,
+//                         color.r,
+//                         color.g,
+//                         color.b
+//                     );
+//                 }
+//             }
+//         }
+//     }
+// }
 
 // ======================
 // DOT GENERATION + DRAW
@@ -183,10 +222,13 @@ function generateDotsFromMaze() {
 
             // Always put a center dot if the cell has any open space
             const hasOpenSpace = cell.walls.some((wall) => wall === false);
+            console.log(hasOpenSpace);
             if (hasOpenSpace) {
                 dotMap[j][i].push({ x: i * w + half, y: j * w + half });
                 totalDots++;
             }
+
+            console.log("cell Width: ", cell_width);
 
             // Add dots depending on open walls
             if (!cell.walls[0]) {
@@ -224,7 +266,7 @@ function generateDotsFromMaze() {
         }
     }
 
-    // console.log(`✅ Dots generated: ${totalDots}`);
+    console.log(`✅ Dots generated: ${totalDots}`);
 }
 
 function drawDots() {
@@ -283,7 +325,6 @@ function pacmanEatDot() {
             dots.splice(k, 1); // hapus dot dari sel
             totalDots--;
             score++;
-            tampilkanScore();
             // Optional: efek suara atau skor bisa ditambah di sini
             // playEatSound();
         }
@@ -297,22 +338,15 @@ function getScore() {
     return score;
 }
 
-var score_cnv = document.getElementById("score-canvas");
-function tampilkanScore() {
-    // clearCanvas(0, 0, 0);
-    ctx2.clearRect(0, 0, score_cnv.width, score_cnv.height);
-    imageData2 = ctx2.getImageData(0, 0, score_cnv.width, score_cnv.height);
-
-    renderScore(imageData2);
-    ctx2.putImageData(imageData2, 0, 0);
-}
+// document.addEventListener("keydown", function (e) {
+//     if (e.key === "ArrowUp") pacmanDir = { x: 0, y: -1 };
+//     if (e.key === "ArrowDown") pacmanDir = { x: 0, y: 1 };
+//     if (e.key === "ArrowLeft") pacmanDir = { x: -1, y: 0 };
+//     if (e.key === "ArrowRight") pacmanDir = { x: 1, y: 0 };
+// });
 
 function renderScore(img) {
-    gambarTeks(img, "SCORE:" + String(score), 10, 10, 2, {
-        r: 255,
-        g: 120,
-        b: 180,
-    });
+    gambarTeks(img, "SCORE:" + score, 10, 10, 2, { r: 255, g: 200, b: 200 });
 }
 
 function renderFrame() {

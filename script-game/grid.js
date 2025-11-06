@@ -5,20 +5,16 @@ class Cell {
         this.walls = [true, true, true, true];
         this.color = [40, 30, 40];
         // this.color = [0, 0, 0];
-        this.line_color = [138, 11, 57];
+        this.line_color = [173, 59, 100];
         this.checked = 0;
 
         // STATE
         this.sedangDicek = false; // Hijau muda - sedang cek node
         this.isParent = false; // Merah - node adalah root
         this.isSet = false;
-        this.unionDecision = false; // Kuning - sedang union
-        this.menujuParent = false; // Kuning - sedang union
-
-        this.merah = false; // Kuning - sedang union
-        this.kuning = false; // Kuning - sedang union
-        this.hijau = false; // Kuning - sedang union
         // this.terhubungKeParent = false; // Biru - sudah terhubung ke root
+        this.unionDecision = false; // Kuning - sedang union
+        this.merah = false; // Kuning - sedang union
         // this.visitted = false;
     }
 
@@ -58,29 +54,43 @@ class Cell {
             this.line_color[2],
         ];
 
+        // Wall Yellow -- wall being considered for removal
+        // Cell Blue -- cell belong to current merged set
+        // Wall Green -- cell successfully removed
+        // Wall Red -- Wall discarded because cells already connected
+        // Cell Orange --
+
         // Prioritas visualisasi (dari paling penting)
         if (this.adalahParent || this.merah) {
-            // console.log("COLOR - RED");
             current_color = [255, 100, 100]; // Merah - root/parent
         } else if (this.menujuParent) {
-            // console.log("COLOR - OREN");
             current_color = [255, 180, 100]; // Oranye - path traversal
             current_line = [255, 140, 0];
+            // } else if (this.unionDecision) {
+            // current_color = [255, 230, 100]; // Kuning - keputusan union
         } else if (this.sedangDicek) {
-            // console.log("COLOR - HIJAU");
             current_color = [169, 240, 149]; // Hijau muda - sedang dicek
             current_line = [11, 194, 63];
+            // } else if (this.terhubungKeParent) {
+            // current_color = [150, 200, 255]; // Biru muda - terhubung ke parent
         } else if (this.checked) {
             current_color = [
-                255 + this.checked * 20,
-                160 + this.checked * 20,
+                // 255 + this.checked * 10,
+                // 130 + this.checked * 20,
+                // 130 + this.checked * 20,
+                210 + this.checked * 10,
                 200 + this.checked * 20,
+                220 + this.checked * 20,
             ]; // Biru muda - terhubung ke parent
         } else if (this.visitted) {
+            // current_color = [225, 235, 242]; // gray mode
             current_color = [225, 235, 242]; // gray mode
         }
-        // 40, 30, 40;
-        // 247, 198, 212
+
+        // 255 - this.checked * 20,
+        // 210 - this.checked * 20,
+        // 210 - this.checked * 20,
+
         this.colorCell(
             x,
             y,
@@ -100,8 +110,8 @@ class Cell {
 }
 
 window.grid = [];
-var grid = window.grid;
-var w = cell_width;
+const grid = window.grid;
+const w = cell_width;
 window.cellWidth = w;
 
 const cols = Math.floor(cnv.width / w);
@@ -172,12 +182,10 @@ window.grid = grid;
 function resetState() {
     for (let c of grid) {
         c.sedangDicek = false; // Hijau muda - sedang cek node
-        c.isParent = false; // Merah - node adalah root
-        c.isSet = false;
+        c.adalahParent = false; // Merah - node adalah root
+        c.terhubungKeParent = false; // Biru - sudah terhubung ke root
         c.unionDecision = false; // Kuning - sedang union
-        c.merah = false; // Kuning - sedang union
-        c.kuning = false; // Kuning - sedang union
-        c.hijau = false; // Kuning - sedang union
-        c.menujuParent = false; // Kuning - sedang union
+        // c.showIndex = false;
+        // c.menujuParent = false;
     }
 }
