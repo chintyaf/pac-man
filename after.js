@@ -1,3 +1,7 @@
+// ===================================
+// AFTER.JS (Versi Final Bersih)
+// ===================================
+
 // =====================
 // VARIABLES
 // =====================
@@ -7,14 +11,26 @@ sedangMenang = false;
 sedangDiStartScreen = false;
 frameCount = 0;
 
-// const gridData = getGridFromMaze(); // <-- HAPUS INI, tidak perlu
 let pacman = new Pacman(1, 1, cell_width / 2 - 4);
+// HAPUS: let bfsAnimationTriggered = false; // Sudah tidak diperlukan
 
 // =====================
 // GAME LOOP
 // =====================
 async function gameLoop() {
+    // Cek kondisi berhenti
     if (sedangGameOver) return;
+    if (sedangDiStartScreen) return;
+    if (sedangMenang) return;
+
+    // --- TAMBAHAN PENTING ---
+    // Cek state pause dari animation-controls.js
+    // Ini akan menjeda seluruh game loop (termasuk Pac-Man)
+    if (window.animationState && window.animationState.isPaused) {
+        requestAnimationFrame(gameLoop); // Tetap panggil loop, tapi jangan lakukan apa-apa
+        return;
+    }
+    // --- AKHIR TAMBAHAN ---
 
     frameCount++;
 
@@ -22,10 +38,12 @@ async function gameLoop() {
     pacman.update();
     pacmanEatDot();
     
-    // 2️⃣ Update Ghost - SETIAP FRAME (delay sudah di dalam ghost)
+    // 2️⃣ Update Ghost
+    // HAPUS: && frameCount % 20 === 0 (Sangat penting!)
     if (typeof ghosts !== "undefined") {
         ghosts.forEach((ghost) => {
             if (ghost.update) {
+                // Biarkan state machine ghost berjalan setiap frame
                 ghost.update(pacman);
             }
         });
@@ -45,30 +63,21 @@ async function gameLoop() {
 
     // 4️⃣ Gambar ulang
     ctx.clearRect(0, 0, cnv.width, cnv.height);
-    drawGrid();
+    drawGrid(); // Menggambar grid (termasuk warna dari BFS)
     imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height);
 
-    // ===== VISUALISASI BFS (TAMBAHAN) =====
-    if (typeof ghosts !== "undefined") {
-        ghosts.forEach((ghost) => {
-            if (ghost.drawBFSVisualization) {
-                ghost.drawBFSVisualization();
-            }
-        });
-    }
-    // ===== AKHIR TAMBAHAN =====
-
-    pacman.draw(imageDataA);
+    pacman.draw(imageDataA); // Gambar Pac-Man
     
-    // Gambar ghost
     if (typeof ghosts !== "undefined") {
+        // Gambar Ghost (dan visualisasi BFS-nya jika state-nya aktif)
         ghosts.forEach((ghost) => ghost.draw(imageDataA));
     }
     
-    drawDots();
+    drawDots(); // Gambar dots
 
     ctx.putImageData(imageDataA, 0, 0);
 
+    // Cek kondisi menang
     if (totalDots == 0) {
         sedangMenang = true;
         tampilkanYouWin(getScore());
@@ -87,26 +96,34 @@ async function startGameAll() {
 
     document.addEventListener("keydown", (e) => {
         pacman.setDirection(e);
+        
+        // HAPUS SEMUA LOGIKA TOMBOL 'B' DARI SINI
+        // Ghost sekarang berjalan otomatis
     });
 
     initializeGhostsAfterMaze();
 
-    // Draw ghosts
-    ghosts.forEach((ghost) => {
-        ghost.draw();
-        console.log(ghost);
-    });
-
-    pacman = new Pacman(5, 2, w / 2 - 10);
-    pacman.draw();
+    // Set posisi awal Pac-Man
+    pacman = new Pacman(5, 2, w / 2 - 10); 
 
     generateDotsFromMaze();
-    drawDots();
 
-    ctx.putImageData(imageDataA, 0, 0);
+    // HAPUS SEMUA FUNGSI GAMBAR DARI SINI:
+    // ghost.draw(); <-- Hapus
+    // pacman.draw(); <-- Hapus
+    // drawDots(); <-- Hapus
+    // ctx.putImageData(imageDataA, 0, 0); <-- Hapus
+    // (Semua sudah ditangani oleh gameLoop)
 
-    // 4️⃣ Mulai loop
-    gameLoop();
+    // ===== INFO: Tampilkan instruksi (Diperbarui) =====
+    console.log("🎮 CONTROLS:");
+    console.log("   Arrow Keys = Move Pac-Man");
+    console.log("   P = Pause/Resume Visualisasi"); // (dari animation-controls.js)
+    console.log("   S = Skip Visualisasi"); // (dari animation-controls.js)
+    console.log("   Slider = Atur Kecepatan Visualisasi");
+    // ===== AKHIR INFO =====
+
+    gameLoop(); // Mulai game loop
 }
 
 skip = true;
@@ -134,7 +151,14 @@ document.addEventListener("keydown", function (e) {
         sedangDiStartScreen = false;
         startGame();
     } else if (sedangGameOver || sedangMenang) {
+        // (Tambahkan logika untuk restart game jika perlu)
+        // location.reload(); // Cara mudah untuk restart
         tampilkanStartScreen();
+        sedangDiStartScreen = true;
         sedangGameOver = false;
+        sedangMenang = false;
     }
 });
+
+// HAPUS fungsi 'startGhostBFSAnimation()' jika ada di file ini.
+// Sudah tidak digunakan lagi.
