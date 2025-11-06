@@ -1,22 +1,21 @@
 class Ghost {
     constructor(x, y, color) {
-        this.gridX = x; // Posisi di grid maze
+        this.gridX = x; 
         this.gridY = y;
         this.color = color;
         this.tileSize = window.cellWidth;
-        this.mode = "CHASE"; // Mode: 'RANDOM' atau 'CHASE'
 
-        // Posisi pixel nyata di canvas
+        this.state = "SEARCHING"; // SEARCHING, CALCULATING, MOVING_ON_PATH, IDLE
+        this.path = []; 
+        
         this.pixelX = this.gridX * this.tileSize + this.tileSize / 2;
         this.pixelY = this.gridY * this.tileSize + this.tileSize / 2;
 
-        this.currentDir = { x: 0, y: 0 };
-        this.speed = 1;
+        this.targetPixelX = this.pixelX;
+        this.targetPixelY = this.pixelY;
+        this.moveSpeed = 4; 
     }
 
-    /**
-     * TUGAS 1: Menggambar Ghost
-     */
     draw() {
         const radius = this.tileSize / 2 - 15;
         const headY = this.pixelY - radius / 3;
@@ -75,9 +74,7 @@ class Ghost {
             255
         );
 
-        // === Fill otomatis 3 bagian ===
         const fillColor = { r: this.color.r, g: this.color.g, b: this.color.b };
-
         function getColorAt(x, y) {
             const i = (Math.floor(y) * imageDataA.width + Math.floor(x)) * 4;
             return {
@@ -86,7 +83,6 @@ class Ghost {
                 b: imageDataA.data[i + 2],
             };
         }
-
         function colorsMatch(c1, c2, tol = 2) {
             return (
                 Math.abs(c1.r - c2.r) <= tol &&
@@ -94,7 +90,6 @@ class Ghost {
                 Math.abs(c1.b - c2.b) <= tol
             );
         }
-
         function safeFill(x, y) {
             const target = getColorAt(x, y);
             const start = { x: Math.floor(x), y: Math.floor(y) };
@@ -121,47 +116,62 @@ class Ghost {
                 }
             }
         }
-
-        // tiga titik isi (kepala, badan, kaki)
         safeFill(this.pixelX, this.pixelY - radius / 3); // kepala
         safeFill(this.pixelX, this.pixelY + radius / 3); // badan tengah
         safeFill(this.pixelX, this.pixelY + radius - 5); // kaki
-
         ctx.putImageData(imageDataA, 0, 0);
     }
 
-    /**
-     * TUGAS 2: Logika Pergerakan Ghost
-     * FIXED: Sekarang menggunakan grid dari maze.js langsung
-     */
-    update(pacman, mazeGrid) {
-        // Tentukan arah berikutnya
-        if (this.mode === "CHASE") {
-            this.currentDir = this._findNextMoveBFS(pacman, mazeGrid);
+    update(pacman) {
+
+        if (window.sedangGameOver || window.sedangMenang) {
+            this.state = "IDLE"; // Tetapkan Ghost ke status diam
+            return; 
+        }
+
+        if (this.state === "SEARCHING") {
+            this.state = "CALCULATING";
+            this._visualizedBFS(pacman);
+        }
+
+        // biar ga patah"
+        let dx = this.targetPixelX - this.pixelX;
+        let dy = this.targetPixelY - this.pixelY;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < this.moveSpeed) {
+            this.pixelX = this.targetPixelX;
+            this.pixelY = this.targetPixelY;
+
+            if (this.state === "MOVING_ON_PATH") {
+                if (this.checkCollision(pacman)) {
+                    this.state = "IDLE"; 
+                } else {
+                    this._setNextPathTarget();
+                }
+            }
         } else {
-            this.currentDir = this._findNextMoveRandom(mazeGrid);
+            this.pixelX += (dx / dist) * this.moveSpeed;
+            this.pixelY += (dy / dist) * this.moveSpeed;
         }
-
-        // Update posisi grid berdasarkan arah
-        if (
-            this.currentDir &&
-            (this.currentDir.x !== 0 || this.currentDir.y !== 0)
-        ) {
-            this.gridX += this.currentDir.x;
-            this.gridY += this.currentDir.y;
+    }
+    
+    _setNextPathTarget() {
+        if (this.path.length > 0) {
+            const nextStep = this.path.shift();
+            this.gridX = nextStep.x;
+            this.gridY = nextStep.y;
+            this.targetPixelX = nextStep.x * this.tileSize + this.tileSize / 2;
+            this.targetPixelY = nextStep.y * this.tileSize + this.tileSize / 2;
+            return true;
+        } else {
+            this.state = "SEARCHING"; 
+            return false;
         }
-
-        // Update posisi pixel
-        this.pixelX = this.gridX * this.tileSize + this.tileSize / 2;
-        this.pixelY = this.gridY * this.tileSize + this.tileSize / 2;
     }
 
-    /**
-     * Helper: Mencari pergerakan acak yang valid
-     */
-    _findNextMoveRandom(mazeGrid) {
+    _findNextMoveRandom() {
         const validMoves = this._getValidMovesFromGrid(this.gridX, this.gridY);
-
         if (validMoves.length > 0) {
             const randomIndex = Math.floor(Math.random() * validMoves.length);
             return validMoves[randomIndex];
@@ -169,53 +179,239 @@ class Ghost {
         return { x: 0, y: 0 };
     }
 
-    /**
-     * Helper: Mencari pergerakan menggunakan BFS
-     */
-    _findNextMoveBFS(pacman, mazeGrid) {
+    async _visualizedBFS(pacman) {
+        const mazeGrid = window.grid || [];
+        if (mazeGrid.length === 0) {
+            this.state = "SEARCHING"; return;
+        }
+
+        const index = window.index; 
+        const drawGrid = window.drawGrid;
+        const drawDots = window.drawDots; 
+        const animate = window.animate; 
+
+        // Fungsi lokal untuk merender frame penuh
+        const renderFullFrame = () => {
+            ctx.clearRect(0, 0, cnv.width, cnv.height); 
+            drawGrid(); 
+            imageDataA = ctx.getImageData(0, 0, cnv.width, cnv.height); 
+            pacman.draw(); 
+            ghosts.forEach((ghost) => ghost.draw()); 
+            drawDots(); 
+            ctx.putImageData(imageDataA, 0, 0); 
+        }
+
+        const cleanupAndExit = () => {
+            for (const c of mazeGrid) {
+                c.sedangDicek = false; c.adalahParent = false; 
+                c.menujuParent = false; c.visitted = false; 
+            }
+            renderFullFrame(); 
+            this.state = "IDLE";
+        };
+
+        if (window.sedangGameOver || window.sedangMenang) {
+            cleanupAndExit();
+            return;
+        }
+
         const start = { x: this.gridX, y: this.gridY };
         const end = { x: pacman.i, y: pacman.j };
-
-        const queue = [[start]];
+        const queue = [];
+        const parentMap = new Map(); 
         const visited = new Set();
-        visited.add(`${start.x},${start.y}`);
+        const startKey = `${start.x},${start.y}`;
+        queue.push(start);
+        visited.add(startKey);
+        parentMap.set(startKey, null);
+        let pathFound = false;
 
+        // Reset semua status visualisasi di grid
+        for (const cell of mazeGrid) {
+            cell.sedangDicek = false; cell.adalahParent = false; 
+            cell.menujuParent = false; cell.visitted = false; 
+        }
+        
+        setStatus("BFS: Memulai Pencarian Jalur...");
+        setMessage(`Memulai dari Node awal: (${start.x}, ${start.y}).`);
+        renderFullFrame();
+        await animate();
+
+        if (window.sedangGameOver || window.sedangMenang) {
+            cleanupAndExit();
+            return;
+        }
+
+        // cari
         while (queue.length > 0) {
-            const path = queue.shift();
-            const pos = path[path.length - 1];
+            const pos = queue.shift();
+            const cell = mazeGrid[index(pos.x, pos.y)];
 
-            // Sampai di Pac-Man?
-            if (pos.x === end.x && pos.y === end.y) {
-                if (path.length > 1) {
-                    const nextStep = path[1];
-                    return { x: nextStep.x - start.x, y: nextStep.y - start.y };
-                }
-                return { x: 0, y: 0 };
+            if (cell) {
+                cell.menujuParent = false; 
+                cell.sedangDicek = true; 
+            }
+            setStatus("BFS: Menganalisis Node Aktif");
+            setMessage(`Mengambil & Memproses Node (${pos.x}, ${pos.y}) dari antrian.`);
+
+            renderFullFrame();
+            await animate(); 
+
+            // 🔥 Cek 2: Setelah visualisasi node sedang diproses
+            if (window.sedangGameOver || window.sedangMenang) {
+                cleanupAndExit();
+                return;
             }
 
-            // Cek tetangga yang valid
+            // cek tujuan
+            if (pos.x === end.x && pos.y === end.y) {
+                pathFound = true;
+                if (cell) cell.adalahParent = true; 
+                setStatus("BFS: Tujuan Ditemukan!");
+                setMessage(`Tujuan ditemukan di Node (${pos.x}, ${pos.y})! Menghentikan pencarian.`);
+                renderFullFrame();
+                await animate(); 
+                // Cek 3 (Opsional tapi aman): Setelah animasi tujuan ditemukan
+                if (window.sedangGameOver || window.sedangMenang) {
+                    cleanupAndExit();
+                    return;
+                }
+                await animate(); 
+                // Cek 4 (Opsional tapi aman): Setelah jeda kedua
+                if (window.sedangGameOver || window.sedangMenang) {
+                    cleanupAndExit();
+                    return;
+                }
+                break; 
+            }
+
+            // cek tetangga
+            setMessage(`Node (${pos.x}, ${pos.y}): Mengecek tetangga...`);
+            renderFullFrame();
+            await animate(); 
+
+            // 🔥 Cek 5: Setelah visualisasi pengecekan tetangga
+            if (window.sedangGameOver || window.sedangMenang) {
+                cleanupAndExit();
+                return;
+            }
+
             const validMoves = this._getValidMovesFromGrid(pos.x, pos.y);
+            let neighborsFound = 0;
             for (const move of validMoves) {
                 const nextX = pos.x + move.x;
                 const nextY = pos.y + move.y;
                 const nextPosKey = `${nextX},${nextY}`;
-
+                
                 if (!visited.has(nextPosKey)) {
                     visited.add(nextPosKey);
-                    const newPath = [...path, { x: nextX, y: nextY }];
-                    queue.push(newPath);
+                    parentMap.set(nextPosKey, pos); 
+                    queue.push({ x: nextX, y: nextY });
+                    neighborsFound++;
+
+                    // SET STATE: "In Queue" (Oranye)
+                    const nextCell = mazeGrid[index(nextX, nextY)];
+                    if (nextCell) {
+                        nextCell.menujuParent = true; 
+                    }
+                    
+                    setMessage(`Menemukan tetangga baru: (${nextX}, ${nextY}). Memasukkannya ke antrian.`);
+                    renderFullFrame();
+                    await animate(); 
+
+                    // 🔥 Cek 6: Setelah visualisasi tetangga baru
+                    if (window.sedangGameOver || window.sedangMenang) {
+                        cleanupAndExit();
+                        return;
+                    }
                 }
             }
+            
+            // 5. SET STATE: "Visited" (Abu-abu)
+            if (cell) {
+                cell.sedangDicek = false; 
+                cell.visitted = true; 
+            }
+            setStatus("BFS: Node Selesai Diproses");
+            setMessage(`Selesai memproses (${pos.x}, ${pos.y}). Node ditandai 'Visited'.`);
+
+            renderFullFrame();
+            await animate(); // Animate status akhir node
+
+            // 🔥 Cek 7: Setelah visualisasi node selesai diproses
+            if (window.sedangGameOver || window.sedangMenang) {
+                cleanupAndExit();
+                return;
+            }
+        }
+        
+        // Final check sebelum rekonstruksi
+        renderFullFrame();
+        await animate();
+        if (window.sedangGameOver || window.sedangMenang) {
+            cleanupAndExit();
+            return;
         }
 
-        // Tidak ada jalur, gerak acak
-        return this._findNextMoveRandom(mazeGrid);
+        // bikin ulang path
+        this.path = [];
+        if (pathFound) {
+            setStatus("BFS: Path Ditemukan!");
+            setMessage("Merekam jalur terpendek dari tujuan ke titik awal...");
+            await animate(); // Animate header
+            if (window.sedangGameOver || window.sedangMenang) {
+                cleanupAndExit();
+                return;
+            }
+
+            let current = end;
+            while (current && (current.x !== start.x || current.y !== start.y)) {
+                this.path.push(current);
+                const currentKey = `${current.x},${current.y}`;
+                const cell = mazeGrid[index(current.x, current.y)];
+                
+                // SET STATE: "Final Path" (Merah)
+                if (cell) {
+                    cell.adalahParent = true; 
+                    cell.visitted = false; 
+                    cell.menujuParent = false; 
+                }
+                setMessage(`Merekam jalur: Node (${current.x}, ${current.y}) adalah bagian dari jalur terpendek.`);
+                renderFullFrame(); 
+                await animate(); 
+
+                // 🔥 Cek 8: Setelah visualisasi penandaan path langkah 1
+                if (window.sedangGameOver || window.sedangMenang) {
+                    cleanupAndExit();
+                    return;
+                }
+                await animate(); 
+                // 🔥 Cek 9: Setelah visualisasi penandaan path langkah 2
+                if (window.sedangGameOver || window.sedangMenang) {
+                    cleanupAndExit();
+                    return;
+                }
+
+                current = parentMap.get(currentKey);
+            }
+            this.path.reverse(); 
+        }
+
+        // reset visualisasi
+        cleanupAndExit(); // Melakukan reset visualisasi dan state = IDLE
+        
+        if (pathFound && this.path.length > 0) {
+            this.state = "MOVING_ON_PATH";
+            this._setNextPathTarget(); 
+            setStatus("Ghost: Mengejar Pac-Man!");
+            setMessage(`Jalur ${this.path.length} langkah akan dieksekusi. Gerakan Ghost dimulai.`);
+        } else {
+            this.state = "SEARCHING";
+            setStatus("Ghost: Tidak ada jalur!");
+            setMessage(`Tidak bisa menemukan jalur ke Pac-Man. Mencari ulang...`);
+        }
     }
 
-    /**
-     * Helper: Mendapatkan arah gerak yang valid berdasarkan GRID MAZE
-     * FIXED: Menggunakan grid global dari maze.js untuk cek dinding
-     */
     _getValidMovesFromGrid(x, y) {
         const directions = [
             { x: 0, y: -1 }, // Atas
@@ -224,151 +420,75 @@ class Ghost {
             { x: 1, y: 0 }, // Kanan
         ];
         const validMoves = [];
-
-        // Ambil grid dari window (global variable dari maze.js)
         const mazeGrid = window.grid || [];
         const cols = Math.floor(cnv.width / this.tileSize);
         const rows = Math.floor(cnv.height / this.tileSize);
-
-        // Ambil cell sekarang
         const currentIndex = x + y * cols;
         const currentCell = mazeGrid[currentIndex];
 
         if (!currentCell) return validMoves;
 
-        // Cek setiap arah
         for (let i = 0; i < directions.length; i++) {
             const dir = directions[i];
             const nextX = x + dir.x;
             const nextY = y + dir.y;
-
-            // Cek batas
             if (nextX < 0 || nextX >= cols || nextY < 0 || nextY >= rows) {
                 continue;
             }
-
-            // Cek dinding berdasarkan arah
-            // walls[0] = top, walls[1] = right, walls[2] = bottom, walls[3] = left
             let hasWall = false;
-
-            if (dir.y === -1) {
-                // Atas
-                hasWall = currentCell.walls[0];
-            } else if (dir.y === 1) {
-                // Bawah
-                hasWall = currentCell.walls[2];
-            } else if (dir.x === -1) {
-                // Kiri
-                hasWall = currentCell.walls[3];
-            } else if (dir.x === 1) {
-                // Kanan
-                hasWall = currentCell.walls[1];
-            }
-
-            // Jika tidak ada dinding, arah ini valid
-            if (!hasWall) {
-                validMoves.push(dir);
-            }
+            if (dir.y === -1) hasWall = currentCell.walls[0];
+            else if (dir.y === 1) hasWall = currentCell.walls[2];
+            else if (dir.x === -1) hasWall = currentCell.walls[3];
+            else if (dir.x === 1) hasWall = currentCell.walls[1];
+            
+            if (!hasWall) validMoves.push(dir);
         }
-
         return validMoves;
     }
 
-    /**
-     * TUGAS 3: Deteksi Tabrakan
-     */
     checkCollision(pacman) {
         return this.gridX === pacman.i && this.gridY === pacman.j;
     }
 }
 
-// Test Ghost - Logic untuk menghubungkan Ghost dengan Maze
-// File ini akan dipanggil setelah semua library dimuat
-
 var ghosts = [];
-
 var gameLoopRunning = false;
-var frameCount = 0;
 
-// Fungsi untuk mengambil grid dari maze.js
 function getGridFromMaze() {
-    // Grid global dari maze.js
     return window.grid || [];
 }
 
-// Fungsi untuk inisialisasi ghost setelah maze selesai
 function initializeGhostsAfterMaze() {
-    // const cellWidth = 35;
     const cols = Math.floor(cnv.width / cell_width);
     const rows = Math.floor(cnv.height / cell_width);
-
     ghosts = [];
 
-    // Buat 4 ghost dengan mode CHASE
     let ghost1 = new Ghost(0, 0, { r: 255, g: 0, b: 0 }, cellWidth);
-    ghost1.mode = "CHASE";
+    ghost1.state = "SEARCHING";
     ghosts.push(ghost1);
-
-    let ghost2 = new Ghost(cols - 1, 0, { r: 255, g: 184, b: 255 }, cellWidth);
-    ghost2.mode = "CHASE";
+    
+    // let ghost2 = new Ghost(cols - 1, 0, { r: 255, g: 184, b: 255 }, cellWidth);
+    // ghost2.state = "SEARCHING";
     // ghosts.push(ghost2);
 
-    let ghost3 = new Ghost(0, rows - 1, { r: 0, g: 255, b: 255 }, cellWidth);
-    ghost3.mode = "CHASE";
-    // ghosts.push(ghost3);
-
-    let ghost4 = new Ghost(
-        cols - 1,
-        rows - 1,
-        { r: 255, g: 184, b: 82 },
-        cellWidth
-    );
-    ghost4.mode = "CHASE";
-    // ghosts.push(ghost4);
-
-    // Inisialisasi Pac-Man di tengah
-    // dummyPacman.gridX = Math.floor(cols / 2);
-    // dummyPacman.gridY = Math.floor(rows / 2);
-    // updatePacmanPixelPosition(cellWidth);
-
     console.log("Ghosts initialized:", ghosts.length);
-    // console.log("Pac-Man at:", dummyPacman.gridX, dummyPacman.gridY);
-
-    // Mulai game loop
-    // if (!gameLoopRunning) {
-    //     gameLoopRunning = true;
-    //     startGameLoop();
-    // }
 }
 
-// Update posisi pixel Pac-Man
-// function updatePacmanPixelPosition(cellWidth) {
-//     dummyPacman.pixelX = dummyPacman.gridX * cellWidth + cellWidth / 2;
-//     dummyPacman.pixelY = dummyPacman.gridY * cellWidth + cellWidth / 2;
-// }
-
-// Cek apakah bisa bergerak ke posisi tertentu
 function canMove(fromX, fromY, toX, toY, gridData) {
     const cols = Math.floor(cnv.width / 35);
     const rows = Math.floor(cnv.height / 35);
 
-    // Cek batas
     if (toX < 0 || toX >= cols || toY < 0 || toY >= rows) {
         return false;
     }
-
-    // Ambil cell dari posisi sekarang
     const fromIndex = fromX + fromY * cols;
     const fromCell = gridData[fromIndex];
 
     if (!fromCell) return false;
 
-    // Cek arah perpindahan dan dinding
     const dx = toX - fromX;
     const dy = toY - fromY;
-
-    // Cek dinding berdasarkan arah
-    // walls = [top, right, bottom, left]
+    
     if (dx === 1 && fromCell.walls[1]) return false; // Ke kanan
     if (dx === -1 && fromCell.walls[3]) return false; // Ke kiri
     if (dy === 1 && fromCell.walls[2]) return false; // Ke bawah
@@ -376,153 +496,3 @@ function canMove(fromX, fromY, toX, toY, gridData) {
 
     return true;
 }
-
-// Game loop utama
-// function startGameLoopGhost() {
-//     initializeGhostsAfterMaze();
-//     function loop() {
-//         if (!gameLoopRunning) return;
-
-//         frameCount++;
-//         const cellWidth = 35;
-//         const gridData = getGridFromMaze();
-
-//         console.log(gridData);
-//         // Update ghost setiap 20 frame
-//         if (frameCount % 20 === 0 && gridData) {
-//             ghosts.forEach((ghost) => {
-//                 // Konversi grid ke format yang dibutuhkan ghost (array 2D)
-//                 const cols = Math.floor(cnv.width / cellWidth);
-//                 const rows = Math.floor(cnv.height / cellWidth);
-//                 const mazeGrid2D = [];
-
-//                 for (let j = 0; j < rows; j++) {
-//                     mazeGrid2D[j] = [];
-//                     for (let i = 0; i < cols; i++) {
-//                         const cell = gridData[i + j * cols];
-//                         // Cell adalah jalan (0) jika bisa diakses
-//                         mazeGrid2D[j][i] = 0;
-//                     }
-//                 }
-
-//                 ghost.update(dummyPacman, mazeGrid2D);
-
-//                 // Cek collision
-//                 if (ghost.checkCollision(dummyPacman)) {
-//                     console.log("COLLISION!");
-//                     alert("Game Over! Ghost menangkap Pac-Man!");
-//                     // Reset Pac-Man
-//                     dummyPacman.gridX = Math.floor(cols / 2);
-//                     dummyPacman.gridY = Math.floor(rows / 2);
-//                     updatePacmanPixelPosition(cellWidth);
-//                 }
-//             });
-//         }
-
-//         // Redraw
-//         if (gridData) {
-//             clearCanvas(255, 255, 255);
-
-//             // Draw maze
-//             for (let cell of gridData) {
-//                 if (cell && cell.show) {
-//                     cell.show();
-//                 }
-//             }
-
-//             // Draw ghosts
-//             ghosts.forEach((ghost) => {
-//                 ghost.draw(imageDataA);
-//             });
-
-//             // Draw Pac-Man
-//             updatePacmanPixelPosition(cellWidth);
-//             drawPacman();
-
-//             ctx.putImageData(imageDataA, 0, 0);
-//         }
-
-//         requestAnimationFrame(loop);
-//     }
-
-//     loop();
-// }
-
-// Draw Pac-Man
-// function drawPacman() {
-//     const cellWidth = 35;
-//     const pacRadius = cellWidth / 3;
-
-//     // Gambar Pac-Man dengan lingkaran polar
-//     lingkaran_polar(
-//         imageDataA,
-//         dummyPacman.pixelX,
-//         dummyPacman.pixelY,
-//         pacRadius,
-//         255,
-//         255,
-//         0
-//     );
-// }
-
-// Keyboard control untuk Pac-Man
-// document.addEventListener("keydown", function (e) {
-//     if (!gameLoopRunning) return;
-
-//     const cellWidth = 35;
-//     const gridData = getGridFromMaze();
-//     if (!gridData) return;
-
-//     let newGridX = dummyPacman.gridX;
-//     let newGridY = dummyPacman.gridY;
-
-//     switch (e.key) {
-//         case "ArrowUp":
-//             newGridY--;
-//             break;
-//         case "ArrowDown":
-//             newGridY++;
-//             break;
-//         case "ArrowLeft":
-//             newGridX--;
-//             break;
-//         case "ArrowRight":
-//             newGridX++;
-//             break;
-//         default:
-//             return;
-//     }
-
-//     // Cek apakah bisa bergerak
-//     if (
-//         canMove(
-//             dummyPacman.gridX,
-//             dummyPacman.gridY,
-//             newGridX,
-//             newGridY,
-//             gridData
-//         )
-//     ) {
-//         dummyPacman.gridX = newGridX;
-//         dummyPacman.gridY = newGridY;
-//         console.log("Pac-Man moved to:", newGridX, newGridY);
-//     } else {
-//         console.log("Can't move - wall detected!");
-//     }
-
-//     e.preventDefault();
-// });
-
-// Hook ke maze completion
-// Kita perlu modify maze.js atau panggil manual setelah maze selesai
-// Untuk sekarang, kita akan polling untuk cek maze selesai
-// var checkMazeInterval = setInterval(function () {
-//     const gridData = getGridFromMaze();
-//     if (gridData && gridData.length > 0 && !gameLoopRunning) {
-//         console.log("Maze detected! Initializing ghosts...");
-//         clearInterval(checkMazeInterval);
-
-//         // Tunggu sebentar untuk memastikan maze benar-benar selesai
-//         setTimeout(initializeGhostsAfterMaze, 1000);
-//     }
-// }, 500);

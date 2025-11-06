@@ -14,30 +14,42 @@ const frameDelay = 1000 / fps; // 33.33 ms per frame
 // GAME LOOP
 // =====================
 async function gameLoop() {
-    if (sedangGameOver) return; // 🛑 stop kalau sudah game over
+    if (sedangGameOver || sedangMenang) return; // 🛑 stop kalau sudah game over
 
     frameCount++;
 
-    // 1️⃣ Update Pac-Man
+    // 1️⃣ Update Pac-Man (setiap frame)
     pacman.update();
     pacmanEatDot();
-    // 2️⃣ Update Ghost setiap beberapa frame
-    if (frameCount % 20 === 0 && typeof ghosts !== "undefined") {
-        ghosts.forEach((ghost) => ghost.update?.(pacman));
+    
+    // 2️⃣ Update Ghost
+    if (typeof ghosts !== 'undefined') {
+        for (const ghost of ghosts) {
+            ghost.update(pacman);
+        }
     }
 
-    // 3️⃣ Cek collision
+    
+    
+    // 3️⃣ Cek collision (setiap frame)
     if (typeof ghosts !== "undefined") {
         for (const ghost of ghosts) {
             if (ghost.checkCollision(pacman)) {
                 // console.log("COLLISION!");
                 sedangGameOver = true;
-                tampilkanYouWin(getScore());
+                // tampilkanYouWin(getScore());
                 tampilkanGameOver(getScore());
                 return; // ⛔ stop di sini, jangan lanjut render & request frame
             }
         }
     }
+    // const isVisualizing = ghosts.some(g => g.state === "CALCULATING");
+    // if (isVisualizing) {
+    //     // Jika ada Ghost yang sedang CALCULATING, jangan biarkan gameLoop merender.
+    //     // Rendering diambil alih oleh renderFullFrame() di dalam ghost.js.
+    //     requestAnimationFrame(gameLoop);
+    //     return; 
+    // }
 
     // 4️⃣ Gambar ulang
     ctx.clearRect(0, 0, cnv.width, cnv.height);
