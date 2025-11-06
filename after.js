@@ -69,7 +69,7 @@ async function gameLoop() {
     pacman.draw(imageDataA); // Gambar Pac-Man
     
     if (typeof ghosts !== "undefined") {
-        // Gambar Ghost (dan visualisasi BFS-nya jika state-nya aktif)
+        // Gambar Ghost (dan visualisasi BFS/Path-nya jika state-nya aktif)
         ghosts.forEach((ghost) => ghost.draw(imageDataA));
     }
     
@@ -109,10 +109,6 @@ async function startGameAll() {
     generateDotsFromMaze();
 
     // HAPUS SEMUA FUNGSI GAMBAR DARI SINI:
-    // ghost.draw(); <-- Hapus
-    // pacman.draw(); <-- Hapus
-    // drawDots(); <-- Hapus
-    // ctx.putImageData(imageDataA, 0, 0); <-- Hapus
     // (Semua sudah ditangani oleh gameLoop)
 
     // ===== INFO: Tampilkan instruksi (Diperbarui) =====
@@ -152,11 +148,7 @@ document.addEventListener("keydown", function (e) {
         startGame();
     } else if (sedangGameOver || sedangMenang) {
         // (Tambahkan logika untuk restart game jika perlu)
-        // location.reload(); // Cara mudah untuk restart
-        tampilkanStartScreen();
-        sedangDiStartScreen = true;
-        sedangGameOver = false;
-        sedangMenang = false;
+        location.reload(); // Cara mudah untuk restart
     }
 });
 
