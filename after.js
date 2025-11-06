@@ -30,7 +30,7 @@ async function gameLoop() {
     if (typeof ghosts !== "undefined") {
         for (const ghost of ghosts) {
             if (ghost.checkCollision(pacman)) {
-                console.log("COLLISION!");
+                // console.log("COLLISION!");
                 sedangGameOver = true;
                 tampilkanYouWin(getScore());
                 tampilkanGameOver(getScore());
@@ -101,7 +101,7 @@ async function startGame() {
 
     tampilkanScore();
 
-    console.log("Maze done — starting game loop!");
+    // console.log("Maze done — starting game loop!");
 
     await startGameAll();
 }
@@ -119,6 +119,7 @@ function clearAllData() {
     sedangMenang = false;
     sedangGameOver = false;
     gameRunning = false;
+    skip = false;
 
     // Optional: clear canvas visually
     clearCanvas(0, 0, 0);
@@ -126,7 +127,7 @@ function clearAllData() {
     setStatus();
     setMessage();
 
-    console.log("All data cleared!");
+    // console.log("All data cleared!");
 }
 
 window.onload = () => {

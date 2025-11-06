@@ -32,7 +32,6 @@ function setStatus(text) {
 }
 
 function setMessage(text) {
-    console.log("text", text);
     if (text) {
         const msgEl = messageDiv.querySelector(".status-msg");
 
@@ -58,24 +57,69 @@ function getDelayFromSpeed(speed) {
 let delay = getDelayFromSpeed(speedSlider.value);
 
 speedSlider.addEventListener("input", () => {
-    speedValue.textContent = speedSlider.value;
+    speedValue.textContent = speedSlider.value + "%";
     delay = getDelayFromSpeed(speedSlider.value);
 });
 
-function sleep(ms = delay) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+// function sleep(ms = delay) {
+//     return new Promise((resolve) => setTimeout(resolve, ms));
+// }
+let paused = false;
+let stepOnce = false;
+
+async function sleep(ms = 0) {
+    const step = 50; // check every 50ms
+    let elapsed = 0;
+
+    while (elapsed < ms) {
+        if (paused) {
+            // Wait until unpaused
+            await new Promise((resolve) => {
+                const check = setInterval(() => {
+                    if (!paused) {
+                        clearInterval(check);
+                        resolve();
+                    }
+                }, step);
+            });
+        }
+        await new Promise((resolve) => setTimeout(resolve, step));
+        elapsed += step;
+
+        // After resuming one step, pause again automatically
+        if (stepOnce) {
+            stepOnce = false;
+            paused = true;
+            break; // stop sleeping early
+        }
+    }
 }
 
 let skip = false;
 
-async function animate() {
+async function animate(customDelay = 0) {
     if (skip) return;
 
+    console.log(paused);
     drawGrid();
-    await sleep(delay);
+    await sleep(customDelay + delay);
 }
-
 function skipAnimation() {
     skip = true;
     animate();
+}
+
+function pause() {
+    paused = true;
+}
+
+function resume() {
+    paused = false;
+}
+
+function next() {
+    if (paused) {
+        stepOnce = true;
+        paused = false;
+    }
 }

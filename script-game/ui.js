@@ -67,14 +67,6 @@ function getCharPattern(ch) {
     return pixelFont[ch] || pixelFont[" "];
 }
 
-// function gbr_titik(img, x, y, r, g, b) {
-//     if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
-//     let i = 4 * (Math.floor(x) + Math.floor(y) * img.width);
-//     img.data[i] = r;
-//     img.data[i + 1] = g;
-//     img.data[i + 2] = b;
-//     img.data[i + 3] = 255;
-// }
 
 function gambarHuruf(img, ch, x, y, scale, color) {
     let pat = getCharPattern(ch);
@@ -145,7 +137,6 @@ function tampilkanGameOver(score) {
         g: 220,
         b: 220,
     });
-    console.log("HALLOOOOO");
     ctx.putImageData(img, 0, 0);
 }
 
@@ -167,38 +158,7 @@ function tampilkanYouWin(score) {
     ctx.putImageData(img, 0, 0);
 }
 
-// const mazeGrid = [
-//     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-//     [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-//     [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-//     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// ];
 
-// function drawMaze(img) {
-//     for (let r = 0; r < mazeGrid.length; r++) {
-//         for (let c = 0; c < mazeGrid[r].length; c++) {
-//             let color =
-//                 mazeGrid[r][c] === 0
-//                     ? { r: 30, g: 70, b: 150 }
-//                     : { r: 0, g: 0, b: 0 };
-//             for (let y = 0; y < cellSize; y++) {
-//                 for (let x = 0; x < cellSize; x++) {
-//                     gbr_titik(
-//                         img,
-//                         c * cellSize + x,
-//                         r * cellSize + y,
-//                         color.r,
-//                         color.g,
-//                         color.b
-//                     );
-//                 }
-//             }
-//         }
-//     }
-// }
 
 // ======================
 // DOT GENERATION + DRAW
@@ -223,13 +183,10 @@ function generateDotsFromMaze() {
 
             // Always put a center dot if the cell has any open space
             const hasOpenSpace = cell.walls.some((wall) => wall === false);
-            console.log(hasOpenSpace);
             if (hasOpenSpace) {
                 dotMap[j][i].push({ x: i * w + half, y: j * w + half });
                 totalDots++;
             }
-
-            console.log("cell Width: ", cell_width);
 
             // Add dots depending on open walls
             if (!cell.walls[0]) {
@@ -267,7 +224,7 @@ function generateDotsFromMaze() {
         }
     }
 
-    console.log(`✅ Dots generated: ${totalDots}`);
+    // console.log(`✅ Dots generated: ${totalDots}`);
 }
 
 function drawDots() {

@@ -3,14 +3,13 @@ function generateMaze() {
         // STEP 2  : Shuffle Walls
         let walls = [];
         async function daftarWall() {
-            console.log("daftar");
             var counter = 1;
 
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
                     setStatus(`Input Wall #${counter}`);
                     let a = index(i, j);
-                    grid[a].color = [100 + +j * 4, 70, 80 + i * 5];
+                    grid[a].color = [255, 150 + j * 15, 150 + i * 15];
 
                     // ---- VERTICAL WALL ----
                     if (i < cols - 1) {
@@ -103,10 +102,9 @@ function generateMaze() {
             setStatus("Maze Modification");
             setMessage(`Maze (${removeCount} adjustments)`);
 
-            animate();
-            // Helper to check if removing a wall disconnects regions too much
+            await animate();
+            // Simple heuristic: avoid removing if cells have < 2 open walls
             function isCriticalWall(a, b) {
-                // Simple heuristic: avoid removing if cells have < 2 open walls
                 const openA = a.walls.filter((w) => !w).length;
                 const openB = b.walls.filter((w) => !w).length;
                 return openA < 1 || openB < 1;
@@ -126,10 +124,18 @@ function generateMaze() {
             const closedEdges = allEdges.filter(([a, b]) => {
                 const dx = a.i - b.i,
                     dy = a.j - b.j;
-                if (dx === 1 && a.walls[3] && b.walls[1]) return true;
-                if (dx === -1 && a.walls[1] && b.walls[3]) return true;
-                if (dy === 1 && a.walls[0] && b.walls[2]) return true;
-                if (dy === -1 && a.walls[2] && b.walls[0]) return true;
+                if (dx === 1 && a.walls[3] && b.walls[1]) {
+                    return true;
+                }
+                if (dx === -1 && a.walls[1] && b.walls[3]) {
+                    return true;
+                }
+                if (dy === 1 && a.walls[0] && b.walls[2]) {
+                    return true;
+                }
+                if (dy === -1 && a.walls[2] && b.walls[0]) {
+                    return true;
+                }
                 return false;
             });
 
@@ -145,8 +151,12 @@ function generateMaze() {
             // Modify the maze by opening selected walls
             let modified = 0;
             for (let [a, b] of closedEdges) {
-                if (modified >= removeCount) break;
-                if (isCriticalWall(a, b)) continue;
+                if (modified >= removeCount) {
+                    break;
+                }
+                if (isCriticalWall(a, b)) {
+                    continue;
+                }
 
                 // Visual highlight
                 a.merah = true;
@@ -164,206 +174,93 @@ function generateMaze() {
                 await animate();
             }
 
-            // setStatus(`Smart modification done (${modified} walls removed).`);
+            // setStatus(`Smazt modification done (${modified} walls removed).`);
             drawGrid();
+            skip = false;
         }
-
-        // async function langsung() {
-        //     setMessage("Daftarkan wall");
-        //     for (let i = 0; i < cols; i++) {
-        //         for (let j = 0; j < rows; j++) {
-        //             let a = index(i, j);
-
-        //             let cell = grid[index(i, j)];
-        //             cell.color = [220 - j * 4, 96, 245 + i * 3];
-
-        //             if (i < cols - 1) {
-        //                 let b = index(i + 1, j);
-        //                 walls.push([a, b, "V"]);
-        //                 visual_walls.push(cell);
-        //                 cell.highlight = 1; // exampl
-        //             }
-
-        //             if (j < rows - 1) {
-        //                 let b = index(i, j + 1);
-        //                 walls.push([a, b, "H"]);
-        //                 cell.highlight = 1;
-        //                 visual_walls.push(cell);
-        //             }
-        //         }
-        //     }
-        //     setMessage("Acak wall");
-        //     for (let i = walls.length - 1; i > 0; i--) {
-        //         let j = Math.floor(Math.random() * (i + 1));
-        //         [walls[i], walls[j]] = [walls[j], walls[i]];
-        //         [visual_walls[i].color, visual_walls[j].color] = [
-        //             visual_walls[j].color,
-        //             visual_walls[i].color,
-        //         ];
-        //         drawGrid();
-        //     }
-        // }
 
         // STEP 2 :
         await daftarWall();
         await acakWall();
 
-        // await langsung();
-
-        //
         class DisjointSet {
             constructor(n) {
                 this.parent = Array.from({ length: n }, (_, i) => i);
                 this.rank = Array(n).fill(0);
             }
 
-            // async animate() {
-            //     drawGrid();
-            //     await sleep(delay / 0.5);
-            // }
-
-            // Mencari parent/root dengan visualisasi path rekursif
-            async find(x, pathFromStart = []) {
-                const cell = grid[x];
-                pathFromStart.push(x);
-
-                cell.sedangDicek = true;
-
-                const pathStr = pathFromStart.join(" → ");
-                setMessage(`🔍 Path: ${pathStr}`);
-                await animate();
-
-                // Jika bukan parent, lanjut ke parent-nya
-                if (this.parent[x] !== x) {
-                    const nextIndex = this.parent[x];
-
-                    cell.menujuParent = true;
-                    grid[nextIndex].showIndex = true;
-
+            // Cari root dengan path compression + visualisasi aman
+            async find(x) {
+                // Base case: jika x adalah root (parent[x] == x)
+                if (this.parent[x] === x) {
+                    // await animate();
+                    grid[x].kuning = true;
                     setMessage(
-                        `📍 ${x} → ${nextIndex} (Path: ${pathStr} -> ${nextIndex})`
+                        `Root ditemukan di [${grid[x].i}, ${grid[x].j}] — tidak memiliki parent lain.`
                     );
-
-                    const root = await this.find(nextIndex, pathFromStart);
-
-                    // this.animate();
-                    this.parent[x] = root;
-                    cell.terhubungKeParent = true;
-
-                    setMessage(`🔗 ${x} langsung ke root ${root}`);
-                    // this.animate();
-                    for (let c of grid) {
-                        c.menujuParent = false;
-                    }
-                    // console.log("test 1");
-
-                    return root;
+                    await animate();
+                    return x;
                 }
 
-                cell.sedangDicek = false;
-                cell.adalahParent = true;
-                setMessage(`👑 ROOT! Path lengkap: ${pathStr}`);
-                await animate();
-
-                return this.parent[x];
+                // Path compression — simpan root hasil rekursi
+                const root = await this.find(this.parent[x]);
+                this.parent[x] = root;
+                return root;
             }
 
             async union(x, y) {
-                // Reset semua state visualisasi sebelum mulai
-                // for (let c of grid) {
-                //     c.sedangDicek = false;
-                //     c.adalahParent = false;
-                //     c.terhubungKeParent = false;
-                //     c.unionDecision = false;
-                //     c.showIndex = false;
-                //     this.menujuParent = false;
-                // }
-                // drawGrid();
+                drawGrid();
 
-                setMessage(`Union (${x}, ${y}) - mencari root masing-masing`);
+                setStatus(
+                    `Union-Find (${x}, ${y}) : Menilai apakah jalur bisa dibuka`
+                );
 
-                // Highlight cell yang akan di-union
                 // grid[x].sedangDicek = true;
+                // setMessage();
+                setMessage(
+                    `Cell A : Mencari root [${grid[x].i}, ${grid[x].j}]`
+                );
+                await animate();
+                const rx = await this.find(x);
+
                 // grid[y].sedangDicek = true;
-                // this.animate();
+                setMessage(
+                    `Cell B : Mencari root [${grid[y].i}, ${grid[y].j}]`
+                );
+                await animate();
+                const ry = await this.find(y);
 
-                // grid[x].sedangDicek = false;
-                // grid[y].sedangDicek = false;
-                // drawGrid();
-                // this.animate();
-
-                setMessage(`Mencari root dari node ${x}`);
-                let rx = await this.find(x, []);
-
-                // Reset visualisasi find sebelum cari root y
-                // for (let c of grid) {
-                //     c.sedangDicek = false;
-                //     c.adalahParent = false;
-                //     c.menujuParent = false;
-                // }
-
-                // drawGrid();
-                // await sleep(delay * 5);
-
-                // Cari root y
-                // grid[y].sedangDicek = true;
-                setMessage(`Mencari root dari node ${y}`);
-                let ry = await this.find(y, []);
-
-                // Reset visualisasi setelah find
-                // for (let c of grid) {
-                //     c.sedangDicek = false;
-                //     c.adalahParent = false;
-                //     c.menujuParent = false;
-                // }
-                // drawGrid();
-
-                // Jika sudah dalam satu set
                 if (rx === ry) {
-                    // grid[rx].unionDecision = true;
                     setMessage(
-                        `Node ${x} dan ${y} sudah dalam satu set (root: ${rx})`
+                        `[${grid[x].i}, ${grid[x].j}] dan [${grid[y].i}, ${grid[y].j}] sudah dalam satu set`
                     );
-
                     await animate();
-                    // drawGrid();
-                    // await sleep(delay * 15);
 
                     return false;
                 }
 
-                // Visualisasi keputusan union (warna kuning)
-                // grid[rx].unionDecision = true;
-                // grid[ry].unionDecision = true;
-                // grid[rx].showIndex = true;
-                // grid[ry].showIndex = true;
-                // drawGrid();
-
                 // Union by rank
-                ////// INII APPAAAA??????!!!!!
+                // Union by rank
                 if (this.rank[rx] < this.rank[ry]) {
                     this.parent[rx] = ry;
                     setMessage(
-                        `Root ${rx} bergabung ke ${ry} (rank: ${this.rank[ry]} < ${this.rank[rx]})`
+                        `Root [${grid[rx].i},${grid[rx].j}] digabung ke root [${grid[ry].i},${grid[ry].j}] karena rank ${this.rank[rx]} < ${this.rank[ry]}`
                     );
                 } else if (this.rank[rx] > this.rank[ry]) {
                     this.parent[ry] = rx;
                     setMessage(
-                        `Root ${ry} bergabung ke ${rx} (rank: ${this.rank[rx]} > ${this.rank[ry]})`
+                        `Root [${grid[ry].i},${grid[ry].j}] digabung ke root [${grid[rx].i},${grid[rx].j}] karena rank ${this.rank[ry]} < ${this.rank[rx]}`
                     );
                 } else {
                     this.parent[ry] = rx;
                     this.rank[rx]++;
                     setMessage(
-                        `Rank sama (${
-                            this.rank[rx] - 1
-                        }), ${ry} bergabung ke ${rx}, rank ${rx} → ${
-                            this.rank[rx]
-                        }`
+                        `Kedua root memiliki rank yang sama. Root [${grid[ry].i},${grid[ry].j}] digabung ke root [${grid[rx].i},${grid[rx].j}] dan rank [${grid[rx].i},${grid[rx].j}] naik menjadi ${this.rank[rx]}`
                     );
                 }
 
                 await animate();
+
                 return true;
             }
         }
@@ -386,7 +283,8 @@ function generateMaze() {
 
                 a.sedangDicek = true;
                 b.sedangDicek = true;
-                setStatus(`Memproses wall #${wallIndex}`);
+
+                setStatus(`Union Find -- Wall #${wallIndex}`);
                 setMessage(`Cell [${a.i}, ${a.j}] - [${b.i}, ${b.j}]`);
                 await animate();
 
@@ -395,17 +293,24 @@ function generateMaze() {
                     removeWall(a, b);
 
                     setMessage(
-                        `Wall #${wallIndex} dihapus! Cell [${a.i}, ${a.j}] dan [${b.i}, ${b.j}] terhubung`
+                        `Wall #${wallIndex} dihapus! Cell [${a.i}, ${a.j}] -- [${b.i}, ${b.j}]`
                     );
+
+                    a.hijau = true;
+                    b.hijau = true;
                 } else {
-                    setMessage(
-                        `Wall #${wallIndex} tidak dihapus (sudah terhubung)`
-                    );
+                    setMessage(`Wall #${wallIndex} tidak dihapus`);
+                    a.merah = true;
+                    b.merah = true;
                 }
 
+                await animate();
                 a.checked += 1;
                 b.checked += 1;
-                await animate();
+                a.merah = false;
+                b.merah = false;
+                a.hijau = false;
+                b.hijau = false;
             }
 
             if (wallIndex < walls.length) {
@@ -415,10 +320,6 @@ function generateMaze() {
             } else {
                 // Selesai
                 resetState();
-                for (let c of grid) {
-                    c.checked = 0;
-                    c.color = [40, 30, 40];
-                }
 
                 setStatus("Maze selesai dibuat!");
                 setMessage(
@@ -426,8 +327,15 @@ function generateMaze() {
                     window.grid.length
                 );
                 drawGrid();
-                await openPath();
                 skip = false;
+                await openPath();
+                for (let c of grid) {
+                    c.checked = 0;
+                    c.color = [40, 30, 40];
+                    await animate(-100);
+                }
+                skip = false;
+
                 resolve();
             }
         }

@@ -12,8 +12,10 @@ p {
 }
 
 .container {
-    max-width: 801px;
-    margin: auto;
+    max-width: 881px;
+    /* margin: auto; */
+    margin: 100px auto;
+    margin-top: 20px;
     /* height: 500px; */
     /* justify-content: center; */
 }
@@ -62,17 +64,99 @@ p {
 }
 
 .frame-border {
-    border: 3px solid rgba(213, 54, 115, 1);
+    border: 3px solid rgba(138, 11, 57, 1);
 }
 
 #score-canvas {
     width: 100%;
 }
 
-#canvas {
-    /* border: 3px solid rgb(86, 213, 54); */
+/* 
+TITLE 
+*/
+.title-modern {
+    text-align: center;
+    font-weight: 700;
+    color: #fff;
+    font-size: 18px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+/* 
+CONTROL PANELL
+*/
+
+#speed {
+    width: 200px;
+}
+
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 881px;
+    /* padding: 1.8rem 2.5rem; */
+    border-radius: 16px;
+    text-align: center;
+}
+
+.speed-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.speed-container label {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.speed-slider {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
 #speed {
     width: 200px;
+    accent-color: #c46ba6;
+}
+
+#speedValue {
+    font-weight: 600;
+    color: #f5c4e0;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 0.6rem 1.3rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #c46ba6, #9b5ca2);
+    color: #fff;
+}
+
+.secondary {
+    background: #222;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+.secondary:hover {
+    background: #333;
+}
+
+.shortcuts {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    line-height: 1.4;
 }
