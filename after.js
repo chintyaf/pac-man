@@ -11,9 +11,9 @@ sedangMenang = false;
 sedangDiStartScreen = false;
 frameCount = 0;
 
-let pacman = new Pacman(1, 1, cell_width / 2 - 4);
-// HAPUS: let bfsAnimationTriggered = false; // Sudah tidak diperlukan
-
+const gridData = getGridFromMaze();
+const fps = 60;
+const frameDelay = 1000 / fps; // 33.33 ms per frame
 // =====================
 // GAME LOOP
 // =====================
@@ -53,10 +53,10 @@ async function gameLoop() {
     if (typeof ghosts !== "undefined") {
         for (const ghost of ghosts) {
             if (ghost.checkCollision(pacman)) {
-                console.log("💀 COLLISION!");
+                // console.log("COLLISION!");
                 sedangGameOver = true;
                 tampilkanGameOver(getScore());
-                return;
+                return; // ⛔ stop di sini, jangan lanjut render & request frame
             }
         }
     }
@@ -85,15 +85,19 @@ async function gameLoop() {
     }
 
     // 5️⃣ Jalankan frame berikutnya
-    requestAnimationFrame(gameLoop);
+    // requestAnimationFrame(gameLoop);
+    setTimeout(() => {
+        requestAnimationFrame(gameLoop);
+    }, frameDelay);
 }
 
 // =====================
 // START FUNCTION
 // =====================
 async function startGameAll() {
-    window.cellWidth = cell_width;
-
+    window.cellWidth = cell_width; // <--- penting, biar this.w kebaca
+    generateDotsFromMaze();
+    drawDots();
     document.addEventListener("keydown", (e) => {
         pacman.setDirection(e);
         
@@ -103,13 +107,15 @@ async function startGameAll() {
 
     initializeGhostsAfterMaze();
 
-    // Set posisi awal Pac-Man
-    pacman = new Pacman(5, 2, w / 2 - 10); 
+    // Draw ghosts
+    ghosts.forEach((ghost) => {
+        ghost.draw();
+    });
 
-    generateDotsFromMaze();
+    pacman = new Pacman(5, 2, w / 2 - 10);
+    pacman.draw();
 
-    // HAPUS SEMUA FUNGSI GAMBAR DARI SINI:
-    // (Semua sudah ditangani oleh gameLoop)
+    ctx.putImageData(imageDataA, 0, 0);
 
     // ===== INFO: Tampilkan instruksi (Diperbarui) =====
     console.log("🎮 CONTROLS:");
@@ -122,13 +128,44 @@ async function startGameAll() {
     gameLoop(); // Mulai game loop
 }
 
-skip = true;
+// skip = true;
 async function startGame() {
+    clearAllData();
+
     await buatGrid();
     await generateMaze();
-    console.log("Maze done – starting game loop!");
+    messageDiv.style.display = "none";
+    score_cnv.style.opacity = 1;
+
+    tampilkanScore();
+
+    // console.log("Maze done — starting game loop!");
 
     await startGameAll();
+}
+
+function clearAllData() {
+    // Reset global variables
+    grid = [];
+    walls = [];
+    dots = [];
+    ghosts = [];
+
+    // Reset score and states
+    score = 0;
+    totalDots = 0;
+    sedangMenang = false;
+    sedangGameOver = false;
+    gameRunning = false;
+    skip = false;
+
+    // Optional: clear canvas visually
+    clearCanvas(0, 0, 0);
+    score_cnv.style.opacity = 0;
+    setStatus();
+    setMessage();
+
+    // console.log("All data cleared!");
 }
 
 window.onload = () => {

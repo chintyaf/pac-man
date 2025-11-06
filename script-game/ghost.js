@@ -143,16 +143,38 @@ function createGhost(x, y, color) {
             { x: radius - radius / 2, y: radius - radius / 3 }, { x: radius, y: radius },
             { x: radius, y: -radius / 3 },
         ];
-        var T = { x: ghost.pixelX, y: ghost.pixelY };
-        var translatedShape = translasi_array(bodyShape, T);
-        polygon(imageDataA, translatedShape, ghost.color.r, ghost.color.g, ghost.color.b);
+        const T = { x: this.pixelX, y: this.pixelY };
+        const translatedShape = translasi_array(bodyShape, T);
+        polygon(
+            imageDataA,
+            translatedShape,
+            this.color.r,
+            this.color.g,
+            this.color.b
+        );
 
-        // mata
-        var eyeRadius = radius / 5;
-        var eyeOffsetX = radius / 2.5;
-        var eyeOffsetY = -(radius / 3);
-        lingkaran_polar(imageDataA, ghost.pixelX - eyeOffsetX, ghost.pixelY + eyeOffsetY, eyeRadius, 255, 255, 255);
-        lingkaran_polar(imageDataA, ghost.pixelX + eyeOffsetX, ghost.pixelY + eyeOffsetY, eyeRadius, 255, 255, 255);
+        // === Mata ===
+        const eyeRadius = radius / 5;
+        const eyeOffsetX = radius / 2.5;
+        const eyeOffsetY = -(radius / 3);
+        lingkaran_polar(
+            imageDataA,
+            this.pixelX - eyeOffsetX,
+            this.pixelY + eyeOffsetY,
+            eyeRadius,
+            255,
+            255,
+            255
+        );
+        lingkaran_polar(
+            imageDataA,
+            this.pixelX + eyeOffsetX,
+            this.pixelY + eyeOffsetY,
+            eyeRadius,
+            255,
+            255,
+            255
+        );
 
         // safe fill helper (mirip flood fill sederhana)
         var fillColor = { r: ghost.color.r, g: ghost.color.g, b: ghost.color.b };

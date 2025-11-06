@@ -11,37 +11,49 @@
 
 <body>
     <div class="container">
-        <h1 style="text-align: center;">
-            Pacman
+        <h1 class="title-modern">
+            Pacman with Kruskal Algorithm for Maze Generation
+            and BFS for Ghost Pathfinding
         </h1>
+
         <div class="content">
-            <div>
-                <span>Speed</span>
-                <input type="range" id="speed" min="1" max="100" value="40">
-                <span id="speedValue">40</span> %
+            <div class="control-panel">
+                <!-- Speed Control -->
+                <div class="speed-container">
+                    <label for="speed">Speed</label>
+                    <div class="speed-slider">
+                        <input type="range" id="speed" min="1" max="100" value="40">
+                        <span id="speedValue">40%</span>
+                    </div>
+                </div>
+
+                <!-- Animation Controls -->
+                <div id="animation-controls" class="button-group">
+                    <button id="skipBtn" onclick="skipAnimation()" class="btn secondary">Skip Animation</button>
+                    <button onclick="pause()" class="btn secondary">Pause</button>
+                    <button onclick="resume()" class="btn secondary">Resume</button>
+                    <button onclick="next()" class="btn">Next</button>
+                </div>
+
+                <!-- <p class="shortcuts">
+                    Shortcuts: <b>P</b> Pause | <b>B</b> Back | <b>S</b> Skip | <b>Ctrl+R</b> Reset | <b>Space</b> Start
+                </p> -->
             </div>
 
-            <!-- Animation Controls -->
-            <div id="animation-controls" style="margin: 10px 0; display: flex; gap: 10px; justify-content: center;">
-                <button id="pauseBtn" style="padding: 8px 16px; cursor: pointer;">Pause</button>
-                <button id="stepBackBtn" style="padding: 8px 16px; cursor: pointer;">Step Back</button>
-                <button id="skipBtn" style="padding: 8px 16px; cursor: pointer;">Skip Animation</button>
-                <button id="resetBtn" style="padding: 8px 16px; cursor: pointer;">Reset</button>
-            </div>
-
-            <div>
-                <button id="skipBtn" onclick="skipAnimation()" style="padding: 8px 16px; cursor: pointer;">Skip
-                    Animation</button>
-            </div>
 
             <!-- Keyboard shortcuts info -->
-            <div style="text-align: center; font-size: 12px; color: #c3c3c3; margin: 5px 0;">
+            <!-- <div style="text-align: center; font-size: 12px; color: #c3c3c3; margin: 5px 0;">
                 Shortcuts: <kbd>P</kbd> Pause | <kbd>B</kbd> Back | <kbd>S</kbd> Skip | <kbd>Ctrl+R</kbd> Reset |
                 <kbd>Space</kbd> Start
-            </div>
+            </div> -->
 
-            <div class="flex-justify-center">
-                <canvas id="canvas" width="881" height="401"></canvas>
+            <div class="frame-canvas">
+                <div class="flex-justify-center">
+                    <canvas id="score-canvas" width="881" height="30" style="opacity: 1;"></canvas>
+                </div>
+                <div class="flex-justify-center">
+                    <canvas id="canvas" class="frame-border" width="881" height="401"></canvas>
+                </div>
             </div>
             <div class="flex-justify-center">
                 <div id="message" class="message" style="display: none;">
