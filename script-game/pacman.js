@@ -1,11 +1,9 @@
-// Instansi global untuk Pac-Man
-
-// == KELAS PAC-MAN ==
+// KELAS PAC-MAN
 class Pacman {
     constructor(i, j, radius) {
         this.i = i; // Posisi grid (indeks)
         this.j = j; // Posisi grid (indeks)
-        this.w = window.cellWidth; // <-- Ini akan membaca 'w' global dari maze.js
+        this.w = window.cellWidth; // <-- Membaca 'w' global dari maze.js
         this.radius = radius;
 
         // Posisi pixel (tengah sel)
@@ -24,15 +22,10 @@ class Pacman {
         this.mouthRate = 0.07;
         this.mouthMax = 0.7; // 40 derajat
         this.mouthMin = 0.1; // 5 derajat
-        // console.log(this.w);
     }
 
-    /**
-     * Menggambar Pac-Man ke imageDataA menggunakan gbr_titik (via dda_line).
-     */
+    // Menggambar Pac-Man ke imageDataA menggunakan gbr_titik (via dda_line).
     draw() {
-        // console.log("Pacman menggambar di:", this.x, this.y);
-
         const r = 255,
             g = 255,
             b = 0; // Warna kuning
@@ -63,11 +56,9 @@ class Pacman {
         }
     }
 
-    /**
-     * Memperbarui posisi dan status Pac-Man.
-     */
+    // Memperbarui posisi dan status Pac-Man.
     update() {
-        // 1. Animasi mulut (hanya jika bergerak)
+        // Animasi mulut (hanya jika bergerak)
         if (this.direction.x !== 0 || this.direction.y !== 0) {
             this.lastValidDirection = this.direction; // Simpan arah terakhir
             if (this.mouthOpening) {
@@ -79,7 +70,7 @@ class Pacman {
             }
         }
 
-        // 2. Logika Gerakan dan Tabrakan
+        // Logika Gerakan dan Tabrakan
         const isCenteredX =
             Math.abs(this.x - (this.i * this.w + this.w / 2)) < this.speed;
         const isCenteredY =
@@ -89,7 +80,6 @@ class Pacman {
             this.x = this.i * this.w + this.w / 2;
             this.y = this.j * this.w + this.w / 2;
 
-            // Ambil sel saat ini dari grid global
             // Ini akan membaca 'grid' dan 'index' global dari maze.js
             let currentCell = grid[index(this.i, this.j)];
             if (!currentCell) return; // Keluar jika di luar batas
@@ -123,18 +113,16 @@ class Pacman {
                 this.direction = { x: 0, y: 0 };
         }
 
-        // 3. Gerakkan Pac-Man
+        // Gerakkan Pac-Man
         this.x += this.direction.x * this.speed;
         this.y += this.direction.y * this.speed;
 
-        // 4. Perbarui posisi grid (i, j)
+        // Perbarui posisi grid (i, j)
         this.i = Math.floor(this.x / this.w);
         this.j = Math.floor(this.y / this.w);
     }
 
-    /**
-     * Menyimpan input dari keyboard.
-     */
+    // Menyimpan input dari keyboard.
     setDirection(e) {
         if (
             !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
@@ -167,14 +155,13 @@ class Pacman {
         }
         e.preventDefault();
 
-        // Logika ini menghentikan gerakan HANYA JIKA
-        // tombol yang dilepas sesuai dengan arah gerak saat ini.
+        // Logika ini menghentikan gerakan hanya jika tombol yang dilepas sesuai dengan arah gerak saat ini.
         switch (e.key) {
             case "ArrowUp":
-                // Jika ini adalah arah TERTUNDA, batalkan
+                // Jika ini adalah arah tertunda, batalkan
                 if (this.nextDirection.y === -1)
                     this.nextDirection = { x: 0, y: 0 };
-                // Jika ini adalah arah SEKARANG, berhenti
+                // Jika ini adalah arah sekarang, berhenti
                 if (this.direction.y === -1) this.direction = { x: 0, y: 0 };
                 break;
             case "ArrowDown":
@@ -228,12 +215,12 @@ class Pacman {
 
 //     pacman = new Pacman(0, 0, w / 2 - 4);
 
-//     // 3️⃣ Gunakan document biar selalu nangkep input
+//     // Gunakan document biar selalu nangkep input
 //     document.addEventListener("keydown", (e) => {
 //         console.log(e);
 //         pacman.setDirection(e);
 //     });
 
-//     // 4️⃣ Mulai loop (ini akan terus jalan)
+//     // Mulai loop (ini akan terus jalan)
 //     gameLoop();
 // }

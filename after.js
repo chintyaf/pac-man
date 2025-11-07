@@ -14,15 +14,15 @@ const frameDelay = 1000 / fps; // 33.33 ms per frame
 // GAME LOOP
 // =====================
 async function gameLoop() {
-    if (sedangGameOver || sedangMenang) return; // 🛑 stop kalau sudah game over
+    if (sedangGameOver || sedangMenang) return; // stop kalau sudah game over
 
     frameCount++;
 
-    // 1️⃣ Update Pac-Man (setiap frame)
+    // Update Pac-Man (setiap frame)
     pacman.update();
     pacmanEatDot();
     
-    // 2️⃣ Update Ghost
+    // Update Ghost
     if (typeof ghosts !== 'undefined') {
         for (const ghost of ghosts) {
             ghost.update(pacman);
@@ -39,7 +39,7 @@ async function gameLoop() {
                 sedangGameOver = true;
                 // tampilkanYouWin(getScore());
                 tampilkanGameOver(getScore());
-                return; // ⛔ stop di sini, jangan lanjut render & request frame
+                return; // stop di sini, jangan lanjut render & request frame
             }
         }
     }

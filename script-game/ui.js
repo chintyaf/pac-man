@@ -158,12 +158,6 @@ function tampilkanYouWin(score) {
     ctx.putImageData(img, 0, 0);
 }
 
-
-
-// ======================
-// DOT GENERATION + DRAW
-// ======================
-
 dotMap = [];
 totalDots = 0;
 
@@ -223,8 +217,6 @@ function generateDotsFromMaze() {
             }
         }
     }
-
-    // console.log(`✅ Dots generated: ${totalDots}`);
 }
 
 function drawDots() {
