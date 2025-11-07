@@ -67,7 +67,6 @@ function getCharPattern(ch) {
     return pixelFont[ch] || pixelFont[" "];
 }
 
-
 function gambarHuruf(img, ch, x, y, scale, color) {
     let pat = getCharPattern(ch);
     for (let row = 0; row < pat.length; row++) {
@@ -138,6 +137,7 @@ function tampilkanGameOver(score) {
         b: 220,
     });
     ctx.putImageData(img, 0, 0);
+    console.log("hallo");
 }
 
 function tampilkanYouWin(score) {

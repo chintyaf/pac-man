@@ -100,7 +100,7 @@ let skip = false;
 async function animate(customDelay = 0) {
     if (skip) return;
 
-    console.log(paused);
+    // console.log(paused);
     drawGrid();
     await sleep(customDelay + delay);
 }

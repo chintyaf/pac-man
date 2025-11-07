@@ -8,48 +8,45 @@ sedangDiStartScreen = false;
 frameCount = 0;
 
 const gridData = getGridFromMaze();
-const fps = 60;
-const frameDelay = 1000 / fps; // 33.33 ms per frame
+
 // =====================
 // GAME LOOP
 // =====================
 async function gameLoop() {
+    skip = false;
     if (sedangGameOver || sedangMenang) return; // stop kalau sudah game over
+    // console.log("gameloop");
 
     frameCount++;
 
     // Update Pac-Man (setiap frame)
     pacman.update();
     pacmanEatDot();
-    
+
     // Update Ghost
-    if (typeof ghosts !== 'undefined') {
+    if (typeof ghosts !== "undefined") {
         for (const ghost of ghosts) {
             ghost.update(pacman);
         }
     }
 
-    
-    
-    // 3️⃣ Cek collision (setiap frame)
-    if (typeof ghosts !== "undefined") {
-        for (const ghost of ghosts) {
-            if (ghost.checkCollision(pacman)) {
-                // console.log("COLLISION!");
-                sedangGameOver = true;
-                // tampilkanYouWin(getScore());
-                tampilkanGameOver(getScore());
-                console.log("aneh")
-                return; // stop di sini, jangan lanjut render & request frame
-            }
+    for (const ghost of ghosts) {
+        if (ghost.checkCollision(pacman)) {
+            // console.log("collision");
+            sedangGameOver = true;
+            tampilkanGameOver(getScore());
+
+            return; // stop di sini, jangan lanjut render & request frame
         }
     }
+    // if (typeof ghosts !== "undefined") {
+    // }
     // const isVisualizing = ghosts.some(g => g.state === "CALCULATING");
     // if (isVisualizing) {
     //     // Jika ada Ghost yang sedang CALCULATING, jangan biarkan gameLoop merender.
     //     // Rendering diambil alih oleh renderFullFrame() di dalam ghost.js.
     //     requestAnimationFrame(gameLoop);
-    //     return; 
+    //     return;
     // }
 
     // 4️⃣ Gambar ulang
@@ -65,15 +62,16 @@ async function gameLoop() {
 
     if (totalDots == 0) {
         sedangMenang = true;
+        skip = false;
         tampilkanYouWin(getScore());
         return;
     }
 
     // 5️⃣ Jalankan frame berikutnya
     // requestAnimationFrame(gameLoop);
-    setTimeout(() => {
-        requestAnimationFrame(gameLoop);
-    }, frameDelay);
+    requestAnimationFrame(gameLoop);
+    // setTimeout(() => {
+    // }, delay);
 }
 
 // =====================
@@ -91,7 +89,7 @@ async function startGameAll() {
 
     // Draw ghosts
     ghosts.forEach((ghost) => {
-        ghost.draw();
+        ghost.draw(imageDataA);
     });
 
     pacman = new Pacman(5, 2, w / 2 - 10);
@@ -99,8 +97,8 @@ async function startGameAll() {
 
     ctx.putImageData(imageDataA, 0, 0);
 
-    // 4️⃣ Mulai loop (ini akan terus jalan)
-    gameLoop();
+    // Mulai loop (ini akan terus jalan)
+    await gameLoop();
 }
 
 // skip = true;
@@ -157,11 +155,13 @@ document.addEventListener("keydown", function (e) {
 
     if (sedangDiStartScreen) {
         sedangDiStartScreen = false;
+
         startGame();
     } else if (sedangGameOver || sedangMenang) {
         tampilkanStartScreen();
-        sedangDiStartScreen = true
+        sedangDiStartScreen = true;
         sedangGameOver = false;
-        sedangMenang = false
+        sedangMenang = false;
+    } else {
     }
 });
