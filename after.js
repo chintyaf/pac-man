@@ -39,6 +39,7 @@ async function gameLoop() {
                 sedangGameOver = true;
                 // tampilkanYouWin(getScore());
                 tampilkanGameOver(getScore());
+                console.log("aneh")
                 return; // stop di sini, jangan lanjut render & request frame
             }
         }
@@ -159,6 +160,8 @@ document.addEventListener("keydown", function (e) {
         startGame();
     } else if (sedangGameOver || sedangMenang) {
         tampilkanStartScreen();
+        sedangDiStartScreen = true
         sedangGameOver = false;
+        sedangMenang = false
     }
 });
